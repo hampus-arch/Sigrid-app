@@ -357,13 +357,13 @@
   const API_URL = '{{ block.settings.api_url }}';
   const GREETING = '{{ block.settings.greeting | default: "How can I help you today?" }}';
   const HEADER_TITLE = '{{ block.settings.header_title | default: "How can I help you today?" }}';
-  const PLACEHOLDER = '{{ block.settings.placeholder | default: "Skicka meddelande till AI" }}';
+  const PLACEHOLDER = '{{ block.settings.placeholder | default: "Message the AI" }}';
   
   const SESSION_ID = 'ck_' + Math.random().toString(36).substr(2, 9) + '_' + Date.now();
 
   const container = document.getElementById('sigrid-chat-widget-container');
   container.innerHTML = `
-    <button class="ck-toggle" aria-label="Öppna chatt">
+    <button class="ck-toggle" aria-label="Open chat">
       <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
         <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H6l-2 2V4h16v12z"/>
       </svg>
@@ -372,7 +372,7 @@
       <div class="ck-header">
         <h3 class="ck-header-title">${HEADER_TITLE}</h3>
         <div class="ck-header-actions">
-          <button class="ck-header-btn ck-close" aria-label="Stäng">
+          <button class="ck-header-btn ck-close" aria-label="Close">
             <svg viewBox="0 0 24 24" fill="currentColor">
               <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
             </svg>
@@ -387,7 +387,7 @@
       <div class="ck-composer">
         <div class="ck-input-wrapper">
           <input type="text" class="ck-input" placeholder="${PLACEHOLDER}" />
-          <button class="ck-send" aria-label="Skicka">
+          <button class="ck-send" aria-label="Send">
             <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
               <path d="M3.4 20.4l17.45-7.48c.81-.35.81-1.49 0-1.84L3.4 3.6c-.66-.29-1.39.2-1.39.91L2 9.12c0 .5.37.93.87.99L17 12 2.87 13.88c-.5.07-.87.5-.87 1l.01 4.61c0 .71.73 1.2 1.39.91z"/>
             </svg>
@@ -465,14 +465,14 @@
 
       if (res.ok) {
         const data = await res.json();
-        addMessage(data.response || 'Inget svar mottaget.', 'assistant');
+        addMessage(data.response || 'No response received.', 'assistant');
       } else {
-        addMessage('Något gick fel. Försök igen.', 'assistant');
+        addMessage('Something went wrong. Please try again.', 'assistant');
       }
     } catch (e) {
       hideTyping();
       console.error('Chat error:', e);
-      addMessage('Kunde inte ansluta. Försök igen.', 'assistant');
+      addMessage('Could not connect. Please try again.', 'assistant');
     }
 
     send.disabled = false;
@@ -495,7 +495,7 @@
     {
       "type": "checkbox",
       "id": "enabled",
-      "label": "Aktivera chat widget",
+      "label": "Enable chat widget",
       "default": true
     },
     {
@@ -520,7 +520,7 @@
       "type": "text",
       "id": "placeholder",
       "label": "Input placeholder",
-      "default": "Skicka meddelande till AI"
+      "default": "Message the AI"
     },
     {
       "type": "range",
