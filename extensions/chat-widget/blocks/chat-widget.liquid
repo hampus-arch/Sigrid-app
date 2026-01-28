@@ -355,9 +355,9 @@
 <script>
 (function() {
   const API_URL = '{{ block.settings.api_url }}';
-  const GREETING = '{{ block.settings.greeting | default: "How can I help you today?" }}';
-  const HEADER_TITLE = '{{ block.settings.header_title | default: "How can I help you today?" }}';
-  const PLACEHOLDER = '{{ block.settings.placeholder | default: "Message the AI" }}';
+  const GREETING = 'How can I help you today?';
+  const HEADER_TITLE = 'Sigrid Assistant';
+  const PLACEHOLDER = 'Message the AI';
   
   const SESSION_ID = 'ck_' + Math.random().toString(36).substr(2, 9) + '_' + Date.now();
 
