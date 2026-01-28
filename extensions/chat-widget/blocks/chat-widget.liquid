@@ -1,15 +1,13 @@
 {% comment %}
   Sigrid AI Chat Widget
-  Connected to OpenAI Agent Builder with Vector Store & Shopify MCP
-  Design: ChatKit style with sage green accent
+  Design matched to ChatKit Playground
 {% endcomment %}
 
 {% if block.settings.enabled %}
 <div id="sigrid-chat-widget-container"></div>
 
-<!-- Load OpenAI Sans font -->
-<link rel="preconnect" href="https://cdn.openai.com">
 <style>
+  /* OpenAI Sans Font */
   @font-face {
     font-family: 'OpenAI Sans';
     src: url('https://cdn.openai.com/common/fonts/openai-sans/v2/OpenAISans-Regular.woff2') format('woff2');
@@ -32,12 +30,22 @@
     font-display: swap;
   }
 
+  /* ChatKit Design Variables */
   :root {
-    --sigrid-accent: {{ block.settings.accent_color | default: '#b8d1c2' }};
-    --sigrid-accent-dark: {{ block.settings.accent_dark | default: '#8fb39e' }};
-    --sigrid-surface: {{ block.settings.surface_color | default: '#f6f5ee' }};
-    --sigrid-text: #2d3436;
-    --sigrid-text-light: #636e72;
+    --ck-accent: #b8d1c2;
+    --ck-accent-hover: #a5c4b3;
+    --ck-surface: #f6f5ee;
+    --ck-surface-elevated: #ffffff;
+    --ck-text-primary: #1a1a1a;
+    --ck-text-secondary: #6b6b6b;
+    --ck-text-tertiary: #9a9a9a;
+    --ck-border: rgba(0, 0, 0, 0.08);
+    --ck-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    --ck-shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.12);
+    --ck-radius: 24px;
+    --ck-radius-full: 9999px;
+    --ck-font: "OpenAI Sans", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --ck-font-size: 15px;
   }
 
   #sigrid-chat-widget-container {
@@ -45,243 +53,300 @@
     bottom: {{ block.settings.position_bottom }}px;
     right: {{ block.settings.position_right }}px;
     z-index: 9999;
-    font-family: "OpenAI Sans", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    font-size: 15px;
+    font-family: var(--ck-font);
+    font-size: var(--ck-font-size);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 
-  .sigrid-chat-toggle {
-    width: 60px;
-    height: 60px;
-    border-radius: 50%;
-    background-color: var(--sigrid-accent);
+  /* Toggle Button */
+  .ck-toggle {
+    width: 56px;
+    height: 56px;
+    border-radius: var(--ck-radius-full);
+    background: var(--ck-accent);
     border: none;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
-    transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+    box-shadow: var(--ck-shadow-lg);
+    transition: all 0.2s ease;
   }
 
-  .sigrid-chat-toggle:hover {
+  .ck-toggle:hover {
+    background: var(--ck-accent-hover);
     transform: scale(1.05);
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
-    background-color: var(--sigrid-accent-dark);
   }
 
-  .sigrid-chat-toggle svg {
-    width: 28px;
-    height: 28px;
-    fill: var(--sigrid-text);
+  .ck-toggle svg {
+    width: 24px;
+    height: 24px;
+    fill: var(--ck-text-primary);
   }
 
-  .sigrid-chat-window {
+  /* Chat Window */
+  .ck-window {
     position: absolute;
-    bottom: 75px;
+    bottom: 68px;
     right: 0;
-    width: 400px;
-    height: 560px;
-    background: var(--sigrid-surface);
-    border-radius: 24px;
-    box-shadow: 0 12px 48px rgba(0, 0, 0, 0.15);
+    width: 380px;
+    height: 520px;
+    background: var(--ck-surface);
+    border-radius: var(--ck-radius);
+    box-shadow: var(--ck-shadow-lg);
     display: none;
     flex-direction: column;
     overflow: hidden;
-    border: 1px solid rgba(0, 0, 0, 0.06);
+    border: 1px solid var(--ck-border);
   }
 
-  .sigrid-chat-window.open {
+  .ck-window.open {
     display: flex;
-    animation: slideUp 0.3s ease;
+    animation: ck-slide-up 0.25s ease-out;
   }
 
-  @keyframes slideUp {
+  @keyframes ck-slide-up {
     from {
       opacity: 0;
-      transform: translateY(10px);
+      transform: translateY(8px) scale(0.98);
     }
     to {
       opacity: 1;
-      transform: translateY(0);
+      transform: translateY(0) scale(1);
     }
   }
 
-  .sigrid-chat-header {
-    padding: 18px 22px;
-    background: var(--sigrid-accent);
-    color: var(--sigrid-text);
+  /* Header - ChatKit Style */
+  .ck-header {
+    padding: 16px 20px;
+    background: var(--ck-accent);
     display: flex;
     justify-content: space-between;
     align-items: center;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+    border-bottom: 1px solid var(--ck-border);
   }
 
-  .sigrid-chat-header h3 {
+  .ck-header-title {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--ck-text-primary);
     margin: 0;
-    font-size: 16px;
-    font-weight: 600;
-    letter-spacing: -0.01em;
   }
 
-  .sigrid-chat-close {
-    background: rgba(0, 0, 0, 0.08);
+  .ck-header-actions {
+    display: flex;
+    gap: 4px;
+  }
+
+  .ck-header-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: var(--ck-radius-full);
+    background: rgba(0, 0, 0, 0.06);
     border: none;
-    color: var(--sigrid-text);
     cursor: pointer;
-    padding: 6px;
-    border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: background-color 0.2s;
+    transition: background 0.15s ease;
+    color: var(--ck-text-primary);
   }
 
-  .sigrid-chat-close:hover {
-    background: rgba(0, 0, 0, 0.12);
+  .ck-header-btn:hover {
+    background: rgba(0, 0, 0, 0.1);
   }
 
-  .sigrid-chat-messages {
+  .ck-header-btn svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  /* Messages Area */
+  .ck-messages {
     flex: 1;
     overflow-y: auto;
     padding: 20px;
     display: flex;
     flex-direction: column;
-    gap: 14px;
-    background: var(--sigrid-surface);
+    gap: 16px;
+    background: var(--ck-surface);
   }
 
-  .sigrid-message {
-    max-width: 82%;
-    padding: 14px 18px;
-    font-size: 15px;
-    line-height: 1.55;
-    word-wrap: break-word;
+  .ck-messages::-webkit-scrollbar {
+    width: 6px;
   }
 
-  .sigrid-message.user {
-    background: var(--sigrid-accent);
-    color: var(--sigrid-text);
-    align-self: flex-end;
-    border-radius: 20px 20px 6px 20px;
+  .ck-messages::-webkit-scrollbar-track {
+    background: transparent;
   }
 
-  .sigrid-message.assistant {
-    background: white;
-    color: var(--sigrid-text);
-    align-self: flex-start;
-    border-radius: 20px 20px 20px 6px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  .ck-messages::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.15);
+    border-radius: 3px;
   }
 
-  .sigrid-message.typing {
-    display: flex;
-    gap: 5px;
-    padding: 18px 22px;
-    background: white;
-  }
-
-  .sigrid-message.typing span {
-    width: 8px;
-    height: 8px;
-    background: var(--sigrid-accent-dark);
-    border-radius: 50%;
-    animation: typing 1.4s ease-in-out infinite;
-  }
-
-  .sigrid-message.typing span:nth-child(2) { animation-delay: 0.2s; }
-  .sigrid-message.typing span:nth-child(3) { animation-delay: 0.4s; }
-
-  @keyframes typing {
-    0%, 60%, 100% { transform: translateY(0); opacity: 0.5; }
-    30% { transform: translateY(-6px); opacity: 1; }
-  }
-
-  .sigrid-chat-input-container {
-    padding: 16px 18px;
-    background: white;
-    display: flex;
-    gap: 10px;
-    border-top: 1px solid rgba(0, 0, 0, 0.06);
-  }
-
-  .sigrid-chat-input {
+  /* Start Screen / Greeting */
+  .ck-start-screen {
     flex: 1;
-    padding: 14px 20px;
-    border: 1px solid rgba(0, 0, 0, 0.1);
-    border-radius: 100px;
-    font-size: 15px;
-    font-family: inherit;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 30px;
+    text-align: center;
+  }
+
+  .ck-greeting {
+    font-size: 20px;
+    font-weight: 500;
+    color: var(--ck-text-primary);
+    margin: 0;
+    letter-spacing: -0.01em;
+  }
+
+  /* Messages */
+  .ck-message {
+    max-width: 85%;
+    padding: 12px 16px;
+    font-size: var(--ck-font-size);
+    line-height: 1.5;
+    word-wrap: break-word;
+    border-radius: 18px;
+  }
+
+  .ck-message.user {
+    background: var(--ck-accent);
+    color: var(--ck-text-primary);
+    align-self: flex-end;
+    border-bottom-right-radius: 6px;
+  }
+
+  .ck-message.assistant {
+    background: var(--ck-surface-elevated);
+    color: var(--ck-text-primary);
+    align-self: flex-start;
+    border-bottom-left-radius: 6px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  }
+
+  /* Typing Indicator */
+  .ck-message.typing {
+    display: flex;
+    gap: 4px;
+    padding: 16px 18px;
+    background: var(--ck-surface-elevated);
+  }
+
+  .ck-message.typing span {
+    width: 6px;
+    height: 6px;
+    background: var(--ck-text-tertiary);
+    border-radius: var(--ck-radius-full);
+    animation: ck-typing 1.2s ease-in-out infinite;
+  }
+
+  .ck-message.typing span:nth-child(2) { animation-delay: 0.15s; }
+  .ck-message.typing span:nth-child(3) { animation-delay: 0.3s; }
+
+  @keyframes ck-typing {
+    0%, 60%, 100% { 
+      transform: translateY(0); 
+      opacity: 0.4;
+    }
+    30% { 
+      transform: translateY(-4px); 
+      opacity: 1;
+    }
+  }
+
+  /* Composer / Input Area */
+  .ck-composer {
+    padding: 16px;
+    background: var(--ck-surface-elevated);
+    border-top: 1px solid var(--ck-border);
+  }
+
+  .ck-input-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: var(--ck-surface);
+    border-radius: var(--ck-radius-full);
+    padding: 4px 4px 4px 20px;
+    border: 1px solid var(--ck-border);
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  }
+
+  .ck-input-wrapper:focus-within {
+    border-color: var(--ck-accent-hover);
+    box-shadow: 0 0 0 3px rgba(184, 209, 194, 0.25);
+  }
+
+  .ck-input {
+    flex: 1;
+    border: none;
+    background: transparent;
+    font-size: var(--ck-font-size);
+    font-family: var(--ck-font);
+    color: var(--ck-text-primary);
     outline: none;
-    background: var(--sigrid-surface);
-    color: var(--sigrid-text);
-    transition: border-color 0.2s, box-shadow 0.2s;
+    padding: 10px 0;
   }
 
-  .sigrid-chat-input::placeholder {
-    color: var(--sigrid-text-light);
+  .ck-input::placeholder {
+    color: var(--ck-text-tertiary);
   }
 
-  .sigrid-chat-input:focus {
-    border-color: var(--sigrid-accent-dark);
-    box-shadow: 0 0 0 3px rgba(184, 209, 194, 0.3);
-  }
-
-  .sigrid-chat-send {
-    width: 48px;
-    height: 48px;
-    border-radius: 50%;
-    background: var(--sigrid-accent);
+  .ck-send {
+    width: 40px;
+    height: 40px;
+    border-radius: var(--ck-radius-full);
+    background: var(--ck-accent);
     border: none;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: background-color 0.2s, transform 0.1s;
+    transition: all 0.15s ease;
+    flex-shrink: 0;
   }
 
-  .sigrid-chat-send:hover { 
-    background: var(--sigrid-accent-dark);
+  .ck-send:hover {
+    background: var(--ck-accent-hover);
   }
-  
-  .sigrid-chat-send:active {
+
+  .ck-send:active {
     transform: scale(0.95);
   }
-  
-  .sigrid-chat-send:disabled { 
-    opacity: 0.5; 
-    cursor: not-allowed; 
-  }
-  
-  .sigrid-chat-send svg { 
-    width: 20px; 
-    height: 20px; 
-    fill: var(--sigrid-text); 
+
+  .ck-send:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
   }
 
-  .sigrid-greeting {
+  .ck-send svg {
+    width: 18px;
+    height: 18px;
+    fill: var(--ck-text-primary);
+  }
+
+  /* Disclaimer */
+  .ck-disclaimer {
     text-align: center;
-    padding: 30px 20px;
+    padding: 8px 16px 0;
+    font-size: 12px;
+    color: var(--ck-text-tertiary);
   }
 
-  .sigrid-greeting h4 {
-    margin: 0 0 10px 0;
-    color: var(--sigrid-text);
-    font-size: 20px;
-    font-weight: 600;
-  }
-
-  .sigrid-greeting p {
-    margin: 0;
-    color: var(--sigrid-text-light);
-    font-size: 15px;
-  }
-
+  /* Mobile Responsive */
   @media (max-width: 480px) {
-    .sigrid-chat-window {
-      width: calc(100vw - 32px);
-      height: calc(100vh - 120px);
-      bottom: 75px;
-      right: -{{ block.settings.position_right | minus: 16 }}px;
+    .ck-window {
+      width: calc(100vw - 24px);
+      height: calc(100vh - 100px);
+      bottom: 68px;
+      right: -{{ block.settings.position_right | minus: 12 }}px;
       border-radius: 20px;
     }
   }
@@ -290,134 +355,131 @@
 <script>
 (function() {
   const API_URL = '{{ block.settings.api_url }}';
-  const GREETING = '{{ block.settings.greeting | default: "Hur kan jag hjälpa dig idag?" }}';
-  const HEADER_TITLE = '{{ block.settings.header_title | default: "Sigrid Assistant" }}';
+  const GREETING = '{{ block.settings.greeting | default: "How can I help you today?" }}';
+  const HEADER_TITLE = '{{ block.settings.header_title | default: "How can I help you today?" }}';
+  const PLACEHOLDER = '{{ block.settings.placeholder | default: "Skicka meddelande till AI" }}';
   
-  // Generate unique session ID
-  const SESSION_ID = 'session_' + Math.random().toString(36).substr(2, 9) + '_' + Date.now();
+  const SESSION_ID = 'ck_' + Math.random().toString(36).substr(2, 9) + '_' + Date.now();
 
   const container = document.getElementById('sigrid-chat-widget-container');
   container.innerHTML = `
-    <button class="sigrid-chat-toggle" aria-label="Open chat">
+    <button class="ck-toggle" aria-label="Öppna chatt">
       <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
         <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H6l-2 2V4h16v12z"/>
       </svg>
     </button>
-    <div class="sigrid-chat-window">
-      <div class="sigrid-chat-header">
-        <h3>${HEADER_TITLE}</h3>
-        <button class="sigrid-chat-close" aria-label="Close chat">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
-          </svg>
-        </button>
-      </div>
-      <div class="sigrid-chat-messages">
-        <div class="sigrid-greeting">
-          <h4>👋 ${GREETING}</h4>
-          <p>Fråga mig om Sigrids produkter!</p>
+    <div class="ck-window">
+      <div class="ck-header">
+        <h3 class="ck-header-title">${HEADER_TITLE}</h3>
+        <div class="ck-header-actions">
+          <button class="ck-header-btn ck-close" aria-label="Stäng">
+            <svg viewBox="0 0 24 24" fill="currentColor">
+              <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+            </svg>
+          </button>
         </div>
       </div>
-      <div class="sigrid-chat-input-container">
-        <input type="text" class="sigrid-chat-input" placeholder="Skriv ditt meddelande..." />
-        <button class="sigrid-chat-send" aria-label="Send message">
-          <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
-          </svg>
-        </button>
+      <div class="ck-messages">
+        <div class="ck-start-screen">
+          <h2 class="ck-greeting">${GREETING}</h2>
+        </div>
+      </div>
+      <div class="ck-composer">
+        <div class="ck-input-wrapper">
+          <input type="text" class="ck-input" placeholder="${PLACEHOLDER}" />
+          <button class="ck-send" aria-label="Skicka">
+            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path d="M3.4 20.4l17.45-7.48c.81-.35.81-1.49 0-1.84L3.4 3.6c-.66-.29-1.39.2-1.39.91L2 9.12c0 .5.37.93.87.99L17 12 2.87 13.88c-.5.07-.87.5-.87 1l.01 4.61c0 .71.73 1.2 1.39.91z"/>
+            </svg>
+          </button>
+        </div>
       </div>
     </div>
   `;
 
   let isOpen = false;
+  let hasMessages = false;
 
-  const toggleBtn = container.querySelector('.sigrid-chat-toggle');
-  const closeBtn = container.querySelector('.sigrid-chat-close');
-  const chatWindow = container.querySelector('.sigrid-chat-window');
-  const messagesContainer = container.querySelector('.sigrid-chat-messages');
-  const input = container.querySelector('.sigrid-chat-input');
-  const sendBtn = container.querySelector('.sigrid-chat-send');
+  const toggle = container.querySelector('.ck-toggle');
+  const close = container.querySelector('.ck-close');
+  const window = container.querySelector('.ck-window');
+  const messages = container.querySelector('.ck-messages');
+  const input = container.querySelector('.ck-input');
+  const send = container.querySelector('.ck-send');
 
   function toggleChat() {
     isOpen = !isOpen;
-    chatWindow.classList.toggle('open', isOpen);
+    window.classList.toggle('open', isOpen);
     if (isOpen) input.focus();
   }
 
-  toggleBtn.addEventListener('click', toggleChat);
-  closeBtn.addEventListener('click', toggleChat);
+  toggle.addEventListener('click', toggleChat);
+  close.addEventListener('click', toggleChat);
 
   function addMessage(content, role) {
-    const greeting = messagesContainer.querySelector('.sigrid-greeting');
-    if (greeting) greeting.remove();
+    if (!hasMessages) {
+      const startScreen = messages.querySelector('.ck-start-screen');
+      if (startScreen) startScreen.remove();
+      hasMessages = true;
+    }
 
-    const messageEl = document.createElement('div');
-    messageEl.className = `sigrid-message ${role}`;
-    messageEl.textContent = content;
-    messagesContainer.appendChild(messageEl);
-    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    const msg = document.createElement('div');
+    msg.className = `ck-message ${role}`;
+    msg.textContent = content;
+    messages.appendChild(msg);
+    messages.scrollTop = messages.scrollHeight;
   }
 
   function showTyping() {
-    const typingEl = document.createElement('div');
-    typingEl.className = 'sigrid-message assistant typing';
-    typingEl.id = 'typing-indicator';
-    typingEl.innerHTML = '<span></span><span></span><span></span>';
-    messagesContainer.appendChild(typingEl);
-    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    const typing = document.createElement('div');
+    typing.className = 'ck-message assistant typing';
+    typing.id = 'ck-typing';
+    typing.innerHTML = '<span></span><span></span><span></span>';
+    messages.appendChild(typing);
+    messages.scrollTop = messages.scrollHeight;
   }
 
   function hideTyping() {
-    const typingEl = document.getElementById('typing-indicator');
-    if (typingEl) typingEl.remove();
+    const typing = document.getElementById('ck-typing');
+    if (typing) typing.remove();
   }
 
   async function sendMessage() {
-    const content = input.value.trim();
-    if (!content) return;
+    const text = input.value.trim();
+    if (!text) return;
 
     input.value = '';
-    sendBtn.disabled = true;
+    send.disabled = true;
 
-    addMessage(content, 'user');
+    addMessage(text, 'user');
     showTyping();
 
     try {
-      console.log('Sending to API:', API_URL);
-      
-      const response = await fetch(API_URL, {
+      const res = await fetch(API_URL, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          message: content,
-          sessionId: SESSION_ID
-        })
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: text, sessionId: SESSION_ID })
       });
 
       hideTyping();
 
-      if (response.ok) {
-        const data = await response.json();
-        console.log('API Response:', data);
+      if (res.ok) {
+        const data = await res.json();
         addMessage(data.response || 'Inget svar mottaget.', 'assistant');
       } else {
-        const errorData = await response.json().catch(() => ({}));
-        console.error('API Error:', response.status, errorData);
         addMessage('Något gick fel. Försök igen.', 'assistant');
       }
-    } catch (error) {
+    } catch (e) {
       hideTyping();
-      console.error('Chat error:', error);
-      addMessage('Kunde inte ansluta. Kontrollera din internetanslutning.', 'assistant');
+      console.error('Chat error:', e);
+      addMessage('Kunde inte ansluta. Försök igen.', 'assistant');
     }
 
-    sendBtn.disabled = false;
+    send.disabled = false;
     input.focus();
   }
 
-  sendBtn.addEventListener('click', sendMessage);
+  send.addEventListener('click', sendMessage);
   input.addEventListener('keypress', (e) => {
     if (e.key === 'Enter') sendMessage();
   });
@@ -440,42 +502,30 @@
       "type": "url",
       "id": "api_url",
       "label": "API URL",
-      "info": "URL till din Sigrid Chat API (https://sigrid-app.vercel.app/api/chat)"
+      "info": "https://sigrid-app.vercel.app/api/chat"
     },
     {
       "type": "text",
       "id": "header_title",
-      "label": "Rubrik",
-      "default": "Sigrid Assistant"
+      "label": "Header text",
+      "default": "How can I help you today?"
     },
     {
       "type": "text",
       "id": "greeting",
-      "label": "Välkomstmeddelande",
-      "default": "Hur kan jag hjälpa dig idag?"
+      "label": "Greeting",
+      "default": "How can I help you today?"
     },
     {
-      "type": "color",
-      "id": "accent_color",
-      "label": "Accent färg (ljus)",
-      "default": "#b8d1c2"
-    },
-    {
-      "type": "color",
-      "id": "accent_dark",
-      "label": "Accent färg (mörk)",
-      "default": "#8fb39e"
-    },
-    {
-      "type": "color",
-      "id": "surface_color",
-      "label": "Bakgrundsfärg",
-      "default": "#f6f5ee"
+      "type": "text",
+      "id": "placeholder",
+      "label": "Input placeholder",
+      "default": "Skicka meddelande till AI"
     },
     {
       "type": "range",
       "id": "position_bottom",
-      "label": "Position från botten (px)",
+      "label": "Position bottom (px)",
       "min": 10,
       "max": 100,
       "step": 5,
@@ -484,7 +534,7 @@
     {
       "type": "range",
       "id": "position_right",
-      "label": "Position från höger (px)",
+      "label": "Position right (px)",
       "min": 10,
       "max": 100,
       "step": 5,
