@@ -1,136 +1,189 @@
 {% comment %}
   Sigrid AI Chat Widget
   Connected to OpenAI Agent Builder with Vector Store & Shopify MCP
+  Design: ChatKit style with sage green accent
 {% endcomment %}
 
 {% if block.settings.enabled %}
 <div id="sigrid-chat-widget-container"></div>
 
+<!-- Load OpenAI Sans font -->
+<link rel="preconnect" href="https://cdn.openai.com">
 <style>
+  @font-face {
+    font-family: 'OpenAI Sans';
+    src: url('https://cdn.openai.com/common/fonts/openai-sans/v2/OpenAISans-Regular.woff2') format('woff2');
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+  }
+  @font-face {
+    font-family: 'OpenAI Sans';
+    src: url('https://cdn.openai.com/common/fonts/openai-sans/v2/OpenAISans-Medium.woff2') format('woff2');
+    font-weight: 500;
+    font-style: normal;
+    font-display: swap;
+  }
+  @font-face {
+    font-family: 'OpenAI Sans';
+    src: url('https://cdn.openai.com/common/fonts/openai-sans/v2/OpenAISans-SemiBold.woff2') format('woff2');
+    font-weight: 600;
+    font-style: normal;
+    font-display: swap;
+  }
+
+  :root {
+    --sigrid-accent: {{ block.settings.accent_color | default: '#b8d1c2' }};
+    --sigrid-accent-dark: {{ block.settings.accent_dark | default: '#8fb39e' }};
+    --sigrid-surface: {{ block.settings.surface_color | default: '#f6f5ee' }};
+    --sigrid-text: #2d3436;
+    --sigrid-text-light: #636e72;
+  }
+
   #sigrid-chat-widget-container {
     position: fixed;
     bottom: {{ block.settings.position_bottom }}px;
     right: {{ block.settings.position_right }}px;
     z-index: 9999;
     font-family: "OpenAI Sans", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    font-size: 15px;
   }
 
   .sigrid-chat-toggle {
     width: 60px;
     height: 60px;
     border-radius: 50%;
-    background-color: {{ block.settings.primary_color }};
+    background-color: var(--sigrid-accent);
     border: none;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+    transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
   }
 
   .sigrid-chat-toggle:hover {
     transform: scale(1.05);
-    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+    background-color: var(--sigrid-accent-dark);
   }
 
   .sigrid-chat-toggle svg {
     width: 28px;
     height: 28px;
-    fill: white;
+    fill: var(--sigrid-text);
   }
 
   .sigrid-chat-window {
     position: absolute;
-    bottom: 70px;
+    bottom: 75px;
     right: 0;
-    width: 380px;
-    height: 520px;
-    background: white;
-    border-radius: 16px;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+    width: 400px;
+    height: 560px;
+    background: var(--sigrid-surface);
+    border-radius: 24px;
+    box-shadow: 0 12px 48px rgba(0, 0, 0, 0.15);
     display: none;
     flex-direction: column;
     overflow: hidden;
+    border: 1px solid rgba(0, 0, 0, 0.06);
   }
 
   .sigrid-chat-window.open {
     display: flex;
+    animation: slideUp 0.3s ease;
+  }
+
+  @keyframes slideUp {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
   }
 
   .sigrid-chat-header {
-    padding: 16px 20px;
-    background: {{ block.settings.primary_color }};
-    color: white;
+    padding: 18px 22px;
+    background: var(--sigrid-accent);
+    color: var(--sigrid-text);
     display: flex;
     justify-content: space-between;
     align-items: center;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.06);
   }
 
   .sigrid-chat-header h3 {
     margin: 0;
     font-size: 16px;
     font-weight: 600;
+    letter-spacing: -0.01em;
   }
 
   .sigrid-chat-close {
-    background: none;
+    background: rgba(0, 0, 0, 0.08);
     border: none;
-    color: white;
+    color: var(--sigrid-text);
     cursor: pointer;
-    padding: 4px;
+    padding: 6px;
+    border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    opacity: 0.8;
-    transition: opacity 0.2s;
+    transition: background-color 0.2s;
   }
 
   .sigrid-chat-close:hover {
-    opacity: 1;
+    background: rgba(0, 0, 0, 0.12);
   }
 
   .sigrid-chat-messages {
     flex: 1;
     overflow-y: auto;
-    padding: 16px;
+    padding: 20px;
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 14px;
+    background: var(--sigrid-surface);
   }
 
   .sigrid-message {
-    max-width: 85%;
-    padding: 12px 16px;
-    border-radius: 16px;
-    font-size: 14px;
-    line-height: 1.5;
+    max-width: 82%;
+    padding: 14px 18px;
+    font-size: 15px;
+    line-height: 1.55;
+    word-wrap: break-word;
   }
 
   .sigrid-message.user {
-    background: {{ block.settings.primary_color }};
-    color: white;
+    background: var(--sigrid-accent);
+    color: var(--sigrid-text);
     align-self: flex-end;
-    border-bottom-right-radius: 4px;
+    border-radius: 20px 20px 6px 20px;
   }
 
   .sigrid-message.assistant {
-    background: #f0f2f5;
-    color: #1a1a1a;
+    background: white;
+    color: var(--sigrid-text);
     align-self: flex-start;
-    border-bottom-left-radius: 4px;
+    border-radius: 20px 20px 20px 6px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
   }
 
   .sigrid-message.typing {
     display: flex;
-    gap: 4px;
-    padding: 16px 20px;
+    gap: 5px;
+    padding: 18px 22px;
+    background: white;
   }
 
   .sigrid-message.typing span {
     width: 8px;
     height: 8px;
-    background: #888;
+    background: var(--sigrid-accent-dark);
     border-radius: 50%;
     animation: typing 1.4s ease-in-out infinite;
   }
@@ -139,66 +192,97 @@
   .sigrid-message.typing span:nth-child(3) { animation-delay: 0.4s; }
 
   @keyframes typing {
-    0%, 60%, 100% { transform: translateY(0); }
-    30% { transform: translateY(-8px); }
+    0%, 60%, 100% { transform: translateY(0); opacity: 0.5; }
+    30% { transform: translateY(-6px); opacity: 1; }
   }
 
   .sigrid-chat-input-container {
-    padding: 12px 16px;
-    border-top: 1px solid #e5e7eb;
+    padding: 16px 18px;
+    background: white;
     display: flex;
-    gap: 8px;
+    gap: 10px;
+    border-top: 1px solid rgba(0, 0, 0, 0.06);
   }
 
   .sigrid-chat-input {
     flex: 1;
-    padding: 12px 16px;
-    border: 1px solid #e5e7eb;
-    border-radius: 24px;
-    font-size: 14px;
+    padding: 14px 20px;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    border-radius: 100px;
+    font-size: 15px;
+    font-family: inherit;
     outline: none;
-    transition: border-color 0.2s;
+    background: var(--sigrid-surface);
+    color: var(--sigrid-text);
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+
+  .sigrid-chat-input::placeholder {
+    color: var(--sigrid-text-light);
   }
 
   .sigrid-chat-input:focus {
-    border-color: {{ block.settings.primary_color }};
+    border-color: var(--sigrid-accent-dark);
+    box-shadow: 0 0 0 3px rgba(184, 209, 194, 0.3);
   }
 
   .sigrid-chat-send {
-    width: 44px;
-    height: 44px;
+    width: 48px;
+    height: 48px;
     border-radius: 50%;
-    background: {{ block.settings.primary_color }};
+    background: var(--sigrid-accent);
     border: none;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: opacity 0.2s;
+    transition: background-color 0.2s, transform 0.1s;
   }
 
-  .sigrid-chat-send:hover { opacity: 0.9; }
-  .sigrid-chat-send:disabled { opacity: 0.5; cursor: not-allowed; }
-  .sigrid-chat-send svg { width: 20px; height: 20px; fill: white; }
+  .sigrid-chat-send:hover { 
+    background: var(--sigrid-accent-dark);
+  }
+  
+  .sigrid-chat-send:active {
+    transform: scale(0.95);
+  }
+  
+  .sigrid-chat-send:disabled { 
+    opacity: 0.5; 
+    cursor: not-allowed; 
+  }
+  
+  .sigrid-chat-send svg { 
+    width: 20px; 
+    height: 20px; 
+    fill: var(--sigrid-text); 
+  }
 
   .sigrid-greeting {
     text-align: center;
-    padding: 20px;
-    color: #666;
+    padding: 30px 20px;
   }
 
   .sigrid-greeting h4 {
-    margin: 0 0 8px 0;
-    color: #1a1a1a;
-    font-size: 18px;
+    margin: 0 0 10px 0;
+    color: var(--sigrid-text);
+    font-size: 20px;
+    font-weight: 600;
+  }
+
+  .sigrid-greeting p {
+    margin: 0;
+    color: var(--sigrid-text-light);
+    font-size: 15px;
   }
 
   @media (max-width: 480px) {
     .sigrid-chat-window {
       width: calc(100vw - 32px);
       height: calc(100vh - 120px);
-      bottom: 70px;
+      bottom: 75px;
       right: -{{ block.settings.position_right | minus: 16 }}px;
+      border-radius: 20px;
     }
   }
 </style>
@@ -223,7 +307,7 @@
       <div class="sigrid-chat-header">
         <h3>${HEADER_TITLE}</h3>
         <button class="sigrid-chat-close" aria-label="Close chat">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
             <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
           </svg>
         </button>
@@ -356,7 +440,7 @@
       "type": "url",
       "id": "api_url",
       "label": "API URL",
-      "info": "URL till din Sigrid Chat API (t.ex. https://din-app.ngrok.io/api/chat)"
+      "info": "URL till din Sigrid Chat API (https://sigrid-app.vercel.app/api/chat)"
     },
     {
       "type": "text",
@@ -372,9 +456,21 @@
     },
     {
       "type": "color",
-      "id": "primary_color",
-      "label": "Primär färg",
-      "default": "#214A45"
+      "id": "accent_color",
+      "label": "Accent färg (ljus)",
+      "default": "#b8d1c2"
+    },
+    {
+      "type": "color",
+      "id": "accent_dark",
+      "label": "Accent färg (mörk)",
+      "default": "#8fb39e"
+    },
+    {
+      "type": "color",
+      "id": "surface_color",
+      "label": "Bakgrundsfärg",
+      "default": "#f6f5ee"
     },
     {
       "type": "range",
