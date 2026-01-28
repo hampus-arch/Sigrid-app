@@ -1,0 +1,14 @@
+api_version = "2024-10"
+
+[[extensions]]
+name = "Sigrid Chat Widget"
+handle = "sigrid-chat-widget"
+uid = "1abb8f71-c485-5653-1ce0-579367fd0f306f3623ed"
+type = "theme"
+
+[extensions.capabilities]
+network_access = true
+
+[[extensions.targeting]]
+module = "./blocks/chat-widget.liquid"
+target = "body"

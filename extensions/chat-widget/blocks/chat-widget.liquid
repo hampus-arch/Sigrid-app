@@ -1,0 +1,399 @@
+{% comment %}
+  Sigrid AI Chat Widget
+  Connected to OpenAI Agent Builder with Vector Store & Shopify MCP
+{% endcomment %}
+
+{% if block.settings.enabled %}
+<div id="sigrid-chat-widget-container"></div>
+
+<style>
+  #sigrid-chat-widget-container {
+    position: fixed;
+    bottom: {{ block.settings.position_bottom }}px;
+    right: {{ block.settings.position_right }}px;
+    z-index: 9999;
+    font-family: "OpenAI Sans", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+
+  .sigrid-chat-toggle {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background-color: {{ block.settings.primary_color }};
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .sigrid-chat-toggle:hover {
+    transform: scale(1.05);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+  }
+
+  .sigrid-chat-toggle svg {
+    width: 28px;
+    height: 28px;
+    fill: white;
+  }
+
+  .sigrid-chat-window {
+    position: absolute;
+    bottom: 70px;
+    right: 0;
+    width: 380px;
+    height: 520px;
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+    display: none;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .sigrid-chat-window.open {
+    display: flex;
+  }
+
+  .sigrid-chat-header {
+    padding: 16px 20px;
+    background: {{ block.settings.primary_color }};
+    color: white;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .sigrid-chat-header h3 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 600;
+  }
+
+  .sigrid-chat-close {
+    background: none;
+    border: none;
+    color: white;
+    cursor: pointer;
+    padding: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0.8;
+    transition: opacity 0.2s;
+  }
+
+  .sigrid-chat-close:hover {
+    opacity: 1;
+  }
+
+  .sigrid-chat-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .sigrid-message {
+    max-width: 85%;
+    padding: 12px 16px;
+    border-radius: 16px;
+    font-size: 14px;
+    line-height: 1.5;
+  }
+
+  .sigrid-message.user {
+    background: {{ block.settings.primary_color }};
+    color: white;
+    align-self: flex-end;
+    border-bottom-right-radius: 4px;
+  }
+
+  .sigrid-message.assistant {
+    background: #f0f2f5;
+    color: #1a1a1a;
+    align-self: flex-start;
+    border-bottom-left-radius: 4px;
+  }
+
+  .sigrid-message.typing {
+    display: flex;
+    gap: 4px;
+    padding: 16px 20px;
+  }
+
+  .sigrid-message.typing span {
+    width: 8px;
+    height: 8px;
+    background: #888;
+    border-radius: 50%;
+    animation: typing 1.4s ease-in-out infinite;
+  }
+
+  .sigrid-message.typing span:nth-child(2) { animation-delay: 0.2s; }
+  .sigrid-message.typing span:nth-child(3) { animation-delay: 0.4s; }
+
+  @keyframes typing {
+    0%, 60%, 100% { transform: translateY(0); }
+    30% { transform: translateY(-8px); }
+  }
+
+  .sigrid-chat-input-container {
+    padding: 12px 16px;
+    border-top: 1px solid #e5e7eb;
+    display: flex;
+    gap: 8px;
+  }
+
+  .sigrid-chat-input {
+    flex: 1;
+    padding: 12px 16px;
+    border: 1px solid #e5e7eb;
+    border-radius: 24px;
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .sigrid-chat-input:focus {
+    border-color: {{ block.settings.primary_color }};
+  }
+
+  .sigrid-chat-send {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: {{ block.settings.primary_color }};
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: opacity 0.2s;
+  }
+
+  .sigrid-chat-send:hover { opacity: 0.9; }
+  .sigrid-chat-send:disabled { opacity: 0.5; cursor: not-allowed; }
+  .sigrid-chat-send svg { width: 20px; height: 20px; fill: white; }
+
+  .sigrid-greeting {
+    text-align: center;
+    padding: 20px;
+    color: #666;
+  }
+
+  .sigrid-greeting h4 {
+    margin: 0 0 8px 0;
+    color: #1a1a1a;
+    font-size: 18px;
+  }
+
+  @media (max-width: 480px) {
+    .sigrid-chat-window {
+      width: calc(100vw - 32px);
+      height: calc(100vh - 120px);
+      bottom: 70px;
+      right: -{{ block.settings.position_right | minus: 16 }}px;
+    }
+  }
+</style>
+
+<script>
+(function() {
+  const API_URL = '{{ block.settings.api_url }}';
+  const GREETING = '{{ block.settings.greeting | default: "Hur kan jag hjälpa dig idag?" }}';
+  const HEADER_TITLE = '{{ block.settings.header_title | default: "Sigrid Assistant" }}';
+  
+  // Generate unique session ID
+  const SESSION_ID = 'session_' + Math.random().toString(36).substr(2, 9) + '_' + Date.now();
+
+  const container = document.getElementById('sigrid-chat-widget-container');
+  container.innerHTML = `
+    <button class="sigrid-chat-toggle" aria-label="Open chat">
+      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H6l-2 2V4h16v12z"/>
+      </svg>
+    </button>
+    <div class="sigrid-chat-window">
+      <div class="sigrid-chat-header">
+        <h3>${HEADER_TITLE}</h3>
+        <button class="sigrid-chat-close" aria-label="Close chat">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+          </svg>
+        </button>
+      </div>
+      <div class="sigrid-chat-messages">
+        <div class="sigrid-greeting">
+          <h4>👋 ${GREETING}</h4>
+          <p>Fråga mig om Sigrids produkter!</p>
+        </div>
+      </div>
+      <div class="sigrid-chat-input-container">
+        <input type="text" class="sigrid-chat-input" placeholder="Skriv ditt meddelande..." />
+        <button class="sigrid-chat-send" aria-label="Send message">
+          <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+  `;
+
+  let isOpen = false;
+
+  const toggleBtn = container.querySelector('.sigrid-chat-toggle');
+  const closeBtn = container.querySelector('.sigrid-chat-close');
+  const chatWindow = container.querySelector('.sigrid-chat-window');
+  const messagesContainer = container.querySelector('.sigrid-chat-messages');
+  const input = container.querySelector('.sigrid-chat-input');
+  const sendBtn = container.querySelector('.sigrid-chat-send');
+
+  function toggleChat() {
+    isOpen = !isOpen;
+    chatWindow.classList.toggle('open', isOpen);
+    if (isOpen) input.focus();
+  }
+
+  toggleBtn.addEventListener('click', toggleChat);
+  closeBtn.addEventListener('click', toggleChat);
+
+  function addMessage(content, role) {
+    const greeting = messagesContainer.querySelector('.sigrid-greeting');
+    if (greeting) greeting.remove();
+
+    const messageEl = document.createElement('div');
+    messageEl.className = `sigrid-message ${role}`;
+    messageEl.textContent = content;
+    messagesContainer.appendChild(messageEl);
+    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+  }
+
+  function showTyping() {
+    const typingEl = document.createElement('div');
+    typingEl.className = 'sigrid-message assistant typing';
+    typingEl.id = 'typing-indicator';
+    typingEl.innerHTML = '<span></span><span></span><span></span>';
+    messagesContainer.appendChild(typingEl);
+    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+  }
+
+  function hideTyping() {
+    const typingEl = document.getElementById('typing-indicator');
+    if (typingEl) typingEl.remove();
+  }
+
+  async function sendMessage() {
+    const content = input.value.trim();
+    if (!content) return;
+
+    input.value = '';
+    sendBtn.disabled = true;
+
+    addMessage(content, 'user');
+    showTyping();
+
+    try {
+      console.log('Sending to API:', API_URL);
+      
+      const response = await fetch(API_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          message: content,
+          sessionId: SESSION_ID
+        })
+      });
+
+      hideTyping();
+
+      if (response.ok) {
+        const data = await response.json();
+        console.log('API Response:', data);
+        addMessage(data.response || 'Inget svar mottaget.', 'assistant');
+      } else {
+        const errorData = await response.json().catch(() => ({}));
+        console.error('API Error:', response.status, errorData);
+        addMessage('Något gick fel. Försök igen.', 'assistant');
+      }
+    } catch (error) {
+      hideTyping();
+      console.error('Chat error:', error);
+      addMessage('Kunde inte ansluta. Kontrollera din internetanslutning.', 'assistant');
+    }
+
+    sendBtn.disabled = false;
+    input.focus();
+  }
+
+  sendBtn.addEventListener('click', sendMessage);
+  input.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') sendMessage();
+  });
+})();
+</script>
+{% endif %}
+
+{% schema %}
+{
+  "name": "Sigrid Chat Widget",
+  "target": "body",
+  "settings": [
+    {
+      "type": "checkbox",
+      "id": "enabled",
+      "label": "Aktivera chat widget",
+      "default": true
+    },
+    {
+      "type": "url",
+      "id": "api_url",
+      "label": "API URL",
+      "info": "URL till din Sigrid Chat API (t.ex. https://din-app.ngrok.io/api/chat)"
+    },
+    {
+      "type": "text",
+      "id": "header_title",
+      "label": "Rubrik",
+      "default": "Sigrid Assistant"
+    },
+    {
+      "type": "text",
+      "id": "greeting",
+      "label": "Välkomstmeddelande",
+      "default": "Hur kan jag hjälpa dig idag?"
+    },
+    {
+      "type": "color",
+      "id": "primary_color",
+      "label": "Primär färg",
+      "default": "#214A45"
+    },
+    {
+      "type": "range",
+      "id": "position_bottom",
+      "label": "Position från botten (px)",
+      "min": 10,
+      "max": 100,
+      "step": 5,
+      "default": 20
+    },
+    {
+      "type": "range",
+      "id": "position_right",
+      "label": "Position från höger (px)",
+      "min": 10,
+      "max": 100,
+      "step": 5,
+      "default": 20
+    }
+  ]
+}
+{% endschema %}
