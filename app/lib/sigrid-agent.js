@@ -3,7 +3,6 @@
  */
 
 import { fileSearchTool, hostedMcpTool, Agent, Runner, withTrace } from "@openai/agents";
-import { z } from "zod";
 
 // Tool definitions matching your Agent Builder configuration
 const fileSearch = fileSearchTool([
@@ -19,24 +18,9 @@ const mcp = hostedMcpTool({
     "search_shop_policies_and_faqs",
     "get_product_details"
   ],
-  requireApproval: {
-    always: {
-      tool_names: [
-        "search_shop_catalog",
-        "get_cart",
-        "update_cart",
-        "search_shop_policies_and_faqs",
-        "get_product_details"
-      ]
-    },
-    never: {
-      tool_names: []
-    }
-  },
+  requireApproval: "never", // Auto-approve for API usage
   serverUrl: "https://sigridstabiliser.se/api/mcp"
 });
-
-const ShopifyAgentSchema = z.object({});
 
 const shopifyAgent = new Agent({
   name: "Shopify agent",
@@ -62,12 +46,11 @@ Do not mention internal tools, searches, or documents.
 
 Answer in the same language as the user's question (Swedish if they write in Swedish).
 `,
-  model: "gpt-5.2-pro",
+  model: "gpt-4o",
   tools: [
     fileSearch,
     mcp
   ],
-  outputType: ShopifyAgentSchema,
   modelSettings: {
     store: true
   }
@@ -108,24 +91,68 @@ export async function runSigridAgent(sessionId, userMessage) {
     // Store updated history
     conversationHistories.set(sessionId, conversationHistory);
 
-    // Extract text response
+    // Extract text response from the agent's output
     let responseText = "";
     
+    // Method 1: Check finalOutput for text
     if (result.finalOutput) {
-      responseText = JSON.stringify(result.finalOutput);
+      if (typeof result.finalOutput === "string") {
+        responseText = result.finalOutput;
+      } else if (result.finalOutput.output_text) {
+        responseText = result.finalOutput.output_text;
+      } else if (result.finalOutput.text) {
+        responseText = result.finalOutput.text;
+      }
     }
     
-    // Try to get the actual text from the last message
-    for (const item of result.newItems) {
-      if (item.rawItem && item.rawItem.content) {
-        for (const content of item.rawItem.content) {
-          if (content.type === "output_text" || content.type === "text") {
-            responseText = content.text || content.value || responseText;
+    // Method 2: Look through newItems for text content
+    if (!responseText) {
+      for (const item of result.newItems) {
+        const rawItem = item.rawItem || item;
+        
+        // Check for direct text output
+        if (rawItem.type === "message" && rawItem.content) {
+          for (const content of rawItem.content) {
+            if (content.type === "output_text" && content.text) {
+              responseText = content.text;
+            } else if (content.type === "text" && (content.text || content.value)) {
+              responseText = content.text || content.value;
+            }
+          }
+        }
+        
+        // Check for assistant message format
+        if (rawItem.role === "assistant" && rawItem.content) {
+          if (typeof rawItem.content === "string") {
+            responseText = rawItem.content;
+          } else if (Array.isArray(rawItem.content)) {
+            for (const c of rawItem.content) {
+              if (c.type === "output_text" || c.type === "text") {
+                responseText = c.text || c.value || responseText;
+              }
+            }
+          }
+        }
+      }
+    }
+    
+    // Method 3: Try to get from toInputList
+    if (!responseText && result.toInputList) {
+      const inputList = result.toInputList();
+      const lastItem = inputList[inputList.length - 1];
+      if (lastItem && lastItem.content) {
+        if (typeof lastItem.content === "string") {
+          responseText = lastItem.content;
+        } else if (Array.isArray(lastItem.content)) {
+          for (const c of lastItem.content) {
+            if (c.text) responseText = c.text;
           }
         }
       }
     }
 
+    console.log("Agent result:", JSON.stringify(result, null, 2).slice(0, 1000));
+    
     return responseText || "Jag kunde inte bearbeta det. Försök igen.";
   });
 }
