@@ -2,29 +2,35 @@
  * Sigrid Agent - Uses OpenAI Agents SDK to connect to Agent Builder workflow
  */
 
-import { fileSearchTool, hostedMcpTool, Agent, Runner, withTrace } from "@openai/agents";
+// Lazy initialization to avoid issues on serverless cold starts
+let shopifyAgent = null;
+let fileSearch = null;
+let mcp = null;
 
-// Tool definitions matching your Agent Builder configuration
-const fileSearch = fileSearchTool([
-  "vs_697327b027a881918d2d80d9641bc4e4"
-]);
+async function getAgent() {
+  if (!shopifyAgent) {
+    const { fileSearchTool, hostedMcpTool, Agent } = await import("@openai/agents");
+    
+    fileSearch = fileSearchTool([
+      "vs_697327b027a881918d2d80d9641bc4e4"
+    ]);
 
-const mcp = hostedMcpTool({
-  serverLabel: "sigridstabiliser",
-  allowedTools: [
-    "search_shop_catalog",
-    "get_cart",
-    "update_cart",
-    "search_shop_policies_and_faqs",
-    "get_product_details"
-  ],
-  requireApproval: "never", // Auto-approve for API usage
-  serverUrl: "https://sigridstabiliser.se/api/mcp"
-});
+    mcp = hostedMcpTool({
+      serverLabel: "sigridstabiliser",
+      allowedTools: [
+        "search_shop_catalog",
+        "get_cart",
+        "update_cart",
+        "search_shop_policies_and_faqs",
+        "get_product_details"
+      ],
+      requireApproval: "never",
+      serverUrl: "https://sigridstabiliser.se/api/mcp"
+    });
 
-const shopifyAgent = new Agent({
-  name: "Shopify agent",
-  instructions: `You are a customer-facing AI assistant on a Shopify product page for Sigrid.
+    shopifyAgent = new Agent({
+      name: "Shopify agent",
+      instructions: `You are a customer-facing AI assistant on a Shopify product page for Sigrid.
 
 You must use File Search as the primary and authoritative source of information.
 Base your answers directly on the retrieved content from the vector store.
@@ -46,15 +52,18 @@ Do not mention internal tools, searches, or documents.
 
 Answer in the same language as the user's question (Swedish if they write in Swedish).
 `,
-  model: "gpt-4o",
-  tools: [
-    fileSearch,
-    mcp
-  ],
-  modelSettings: {
-    store: true
+      model: "gpt-4o",
+      tools: [
+        fileSearch,
+        mcp
+      ],
+      modelSettings: {
+        store: true
+      }
+    });
   }
-});
+  return shopifyAgent;
+}
 
 // Store conversation history per session
 const conversationHistories = new Map();
@@ -66,6 +75,9 @@ const conversationHistories = new Map();
  * @returns {Promise<string>} - The agent's response
  */
 export async function runSigridAgent(sessionId, userMessage) {
+  const { Runner, withTrace } = await import("@openai/agents");
+  const agent = await getAgent();
+  
   return await withTrace("Sigrid Shopify agent", async () => {
     // Get or create conversation history for this session
     let conversationHistory = conversationHistories.get(sessionId) || [];
@@ -83,7 +95,7 @@ export async function runSigridAgent(sessionId, userMessage) {
       }
     });
 
-    const result = await runner.run(shopifyAgent, conversationHistory);
+    const result = await runner.run(agent, conversationHistory);
     
     // Add agent response to history
     conversationHistory.push(...result.newItems.map((item) => item.rawItem));
