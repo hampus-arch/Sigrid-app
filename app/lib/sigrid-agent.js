@@ -28,10 +28,15 @@ Answer in the same language as the user's question (Swedish if they write in Swe
  * @returns {Promise<string>} - The agent's response
  */
 export async function runSigridAgent(sessionId, userMessage) {
-  const apiKey = process.env.OPENAI_API_KEY;
+  const apiKey = process.env.OPENAI_API_KEY?.trim();
   
   if (!apiKey) {
     throw new Error("OPENAI_API_KEY is not configured");
+  }
+  
+  // Validate API key format
+  if (!apiKey.startsWith("sk-")) {
+    throw new Error("Invalid API key format");
   }
 
   try {
