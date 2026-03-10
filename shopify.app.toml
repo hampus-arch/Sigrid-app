@@ -1,8 +1,8 @@
 # Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
 
-name = "Sigrid test"
-client_id = "4510ff214b567be3bd8d269a68842f73"
-handle = "sigrid-test"
+name = "Sigrid final production260310"
+client_id = "01393e08d1a71c6afba51c3d24100516"
+handle = "sigrid-final-production"
 application_url = "https://sigrid-app-git-main-orange-juice-ecommerce-agency-1c88cb62.vercel.app"
 embedded = true
 
@@ -20,4 +20,3 @@ embedded = false
 
 [build]
 automatically_update_urls_on_dev = true
-dev_store_url = "test-sigrid.myshopify.com"
