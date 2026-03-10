@@ -3,14 +3,14 @@
 name = "Sigrid test"
 client_id = "4510ff214b567be3bd8d269a68842f73"
 handle = "sigrid-test"
-application_url = "https://localhost:3000"
+application_url = "https://sigrid-app-git-main-orange-juice-ecommerce-agency-1c88cb62.vercel.app"
 embedded = true
 
 [access_scopes]
 scopes = "read_products"
 
 [auth]
-redirect_urls = [ "https://localhost:3000/auth/callback" ]
+redirect_urls = [ "https://sigrid-app-git-main-orange-juice-ecommerce-agency-1c88cb62.vercel.app/auth/callback" ]
 
 [webhooks]
 api_version = "2024-10"
