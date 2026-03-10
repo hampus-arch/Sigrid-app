@@ -1,36 +1,17 @@
 /**
- * Sigrid Agent - Uses OpenAI Agents SDK to connect to Agent Builder workflow
+ * Sigrid Agent - Uses OpenAI API with Responses endpoint
  */
 
-// Lazy initialization to avoid issues on serverless cold starts
-let shopifyAgent = null;
-let fileSearch = null;
-let mcp = null;
+import OpenAI from "openai";
 
-async function getAgent() {
-  if (!shopifyAgent) {
-    const { fileSearchTool, hostedMcpTool, Agent } = await import("@openai/agents");
-    
-    fileSearch = fileSearchTool([
-      "vs_697327b027a881918d2d80d9641bc4e4"
-    ]);
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+});
 
-    mcp = hostedMcpTool({
-      serverLabel: "sigridstabiliser",
-      allowedTools: [
-        "search_shop_catalog",
-        "get_cart",
-        "update_cart",
-        "search_shop_policies_and_faqs",
-        "get_product_details"
-      ],
-      requireApproval: "never",
-      serverUrl: "https://sigridstabiliser.se/api/mcp"
-    });
+// Store conversation history per session
+const conversationHistories = new Map();
 
-    shopifyAgent = new Agent({
-      name: "Shopify agent",
-      instructions: `You are a customer-facing AI assistant on a Shopify product page for Sigrid.
+const SYSTEM_INSTRUCTIONS = `You are a customer-facing AI assistant on a Shopify product page for Sigrid.
 
 You must use File Search as the primary and authoritative source of information.
 Base your answers directly on the retrieved content from the vector store.
@@ -51,22 +32,10 @@ If the retrieved content does not support an answer, say so clearly.
 Do not mention internal tools, searches, or documents.
 
 Answer in the same language as the user's question (Swedish if they write in Swedish).
-`,
-      model: "gpt-4o",
-      tools: [
-        fileSearch,
-        mcp
-      ],
-      modelSettings: {
-        store: true
-      }
-    });
-  }
-  return shopifyAgent;
-}
+`;
 
-// Store conversation history per session
-const conversationHistories = new Map();
+// Vector store ID from your Agent Builder config
+const VECTOR_STORE_ID = "vs_697327b027a881918d2d80d9641bc4e4";
 
 /**
  * Run the Sigrid agent with the given message
@@ -75,98 +44,63 @@ const conversationHistories = new Map();
  * @returns {Promise<string>} - The agent's response
  */
 export async function runSigridAgent(sessionId, userMessage) {
-  const { Runner, withTrace } = await import("@openai/agents");
-  const agent = await getAgent();
-  
-  return await withTrace("Sigrid Shopify agent", async () => {
+  try {
     // Get or create conversation history for this session
     let conversationHistory = conversationHistories.get(sessionId) || [];
     
     // Add user message to history
     conversationHistory.push({
       role: "user",
-      content: [{ type: "input_text", text: userMessage }]
+      content: userMessage
     });
 
-    const runner = new Runner({
-      traceMetadata: {
-        __trace_source__: "agent-builder",
-        workflow_id: "wf_69713d3cd9b081909ef043c8f694feaa072ce62a0e48798f"
-      }
+    // Use the Responses API with file search
+    const response = await openai.responses.create({
+      model: "gpt-4o",
+      instructions: SYSTEM_INSTRUCTIONS,
+      input: conversationHistory,
+      tools: [
+        {
+          type: "file_search",
+          vector_store_ids: [VECTOR_STORE_ID]
+        }
+      ]
     });
 
-    const result = await runner.run(agent, conversationHistory);
-    
-    // Add agent response to history
-    conversationHistory.push(...result.newItems.map((item) => item.rawItem));
-    
-    // Store updated history
-    conversationHistories.set(sessionId, conversationHistory);
-
-    // Extract text response from the agent's output
+    // Extract the response text
     let responseText = "";
     
-    // Method 1: Check finalOutput for text
-    if (result.finalOutput) {
-      if (typeof result.finalOutput === "string") {
-        responseText = result.finalOutput;
-      } else if (result.finalOutput.output_text) {
-        responseText = result.finalOutput.output_text;
-      } else if (result.finalOutput.text) {
-        responseText = result.finalOutput.text;
-      }
-    }
-    
-    // Method 2: Look through newItems for text content
-    if (!responseText) {
-      for (const item of result.newItems) {
-        const rawItem = item.rawItem || item;
-        
-        // Check for direct text output
-        if (rawItem.type === "message" && rawItem.content) {
-          for (const content of rawItem.content) {
-            if (content.type === "output_text" && content.text) {
-              responseText = content.text;
-            } else if (content.type === "text" && (content.text || content.value)) {
-              responseText = content.text || content.value;
+    if (response.output) {
+      for (const item of response.output) {
+        if (item.type === "message" && item.content) {
+          for (const content of item.content) {
+            if (content.type === "output_text" || content.type === "text") {
+              responseText = content.text || responseText;
             }
-          }
-        }
-        
-        // Check for assistant message format
-        if (rawItem.role === "assistant" && rawItem.content) {
-          if (typeof rawItem.content === "string") {
-            responseText = rawItem.content;
-          } else if (Array.isArray(rawItem.content)) {
-            for (const c of rawItem.content) {
-              if (c.type === "output_text" || c.type === "text") {
-                responseText = c.text || c.value || responseText;
-              }
-            }
-          }
-        }
-      }
-    }
-    
-    // Method 3: Try to get from toInputList
-    if (!responseText && result.toInputList) {
-      const inputList = result.toInputList();
-      const lastItem = inputList[inputList.length - 1];
-      if (lastItem && lastItem.content) {
-        if (typeof lastItem.content === "string") {
-          responseText = lastItem.content;
-        } else if (Array.isArray(lastItem.content)) {
-          for (const c of lastItem.content) {
-            if (c.text) responseText = c.text;
           }
         }
       }
     }
 
-    console.log("Agent result:", JSON.stringify(result, null, 2).slice(0, 1000));
+    // Add assistant response to history
+    if (responseText) {
+      conversationHistory.push({
+        role: "assistant",
+        content: responseText
+      });
+    }
     
+    // Store updated history (limit to last 20 messages to prevent memory issues)
+    if (conversationHistory.length > 20) {
+      conversationHistory = conversationHistory.slice(-20);
+    }
+    conversationHistories.set(sessionId, conversationHistory);
+
     return responseText || "Jag kunde inte bearbeta det. Försök igen.";
-  });
+  } catch (error) {
+    console.error("Agent error:", error);
+    throw error;
+  }
 }
 
 /**
