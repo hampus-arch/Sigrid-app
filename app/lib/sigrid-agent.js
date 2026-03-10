@@ -77,8 +77,11 @@ export async function runSigridAgent(sessionId, userMessage) {
 
     return responseText || "Jag kunde inte bearbeta det. Försök igen.";
   } catch (error) {
-    console.error("Agent error:", error);
-    throw error;
+    console.error("Agent error:", error.message);
+    console.error("Error type:", error.constructor.name);
+    console.error("API Key present:", !!process.env.OPENAI_API_KEY);
+    console.error("API Key length:", process.env.OPENAI_API_KEY?.length || 0);
+    throw new Error(`OpenAI API error: ${error.message}`);
   }
 }
 
