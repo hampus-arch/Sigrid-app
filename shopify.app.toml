@@ -3,14 +3,14 @@
 name = "Sigrid final production260310"
 client_id = "01393e08d1a71c6afba51c3d24100516"
 handle = "sigrid-final-production"
-application_url = "https://sigrid-app-git-main-orange-juice-ecommerce-agency-1c88cb62.vercel.app"
+application_url = "https://sigrid-chat-widget.vercel.app"
 embedded = true
 
 [access_scopes]
 scopes = "read_products"
 
 [auth]
-redirect_urls = [ "https://sigrid-app-git-main-orange-juice-ecommerce-agency-1c88cb62.vercel.app/auth/callback" ]
+redirect_urls = [ "https://sigrid-chat-widget.vercel.app/auth/callback" ]
 
 [webhooks]
 api_version = "2024-10"
