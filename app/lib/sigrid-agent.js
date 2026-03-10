@@ -1,5 +1,5 @@
 /**
- * Sigrid Agent - Uses OpenAI API with Responses endpoint
+ * Sigrid Agent - Uses OpenAI Chat Completions API
  */
 
 import OpenAI from "openai";
@@ -11,14 +11,9 @@ const openai = new OpenAI({
 // Store conversation history per session
 const conversationHistories = new Map();
 
-const SYSTEM_INSTRUCTIONS = `You are a customer-facing AI assistant on a Shopify product page for Sigrid.
+const SYSTEM_MESSAGE = `You are a customer-facing AI assistant on a Shopify product page for Sigrid.
 
-You must use File Search as the primary and authoritative source of information.
-Base your answers directly on the retrieved content from the vector store.
-
-When File Search returns information, you must summarize and explain that content
-clearly and concretely. Do not answer from general knowledge if relevant content
-exists.
+Be helpful, friendly, and concise in your responses.
 
 Avoid vague or generic descriptions.
 Be specific and factual using approved wording.
@@ -27,15 +22,10 @@ Do not make disease or medical claims.
 Do not compare the product to drugs or medications.
 Do not overstate clinical evidence.
 
-If the retrieved content does not support an answer, say so clearly.
-
-Do not mention internal tools, searches, or documents.
+If you don't have information about something, say so clearly.
 
 Answer in the same language as the user's question (Swedish if they write in Swedish).
 `;
-
-// Vector store ID from your Agent Builder config
-const VECTOR_STORE_ID = "vs_697327b027a881918d2d80d9641bc4e4";
 
 /**
  * Run the Sigrid agent with the given message
@@ -54,33 +44,22 @@ export async function runSigridAgent(sessionId, userMessage) {
       content: userMessage
     });
 
-    // Use the Responses API with file search
-    const response = await openai.responses.create({
+    // Build messages array with system prompt
+    const messages = [
+      { role: "system", content: SYSTEM_MESSAGE },
+      ...conversationHistory
+    ];
+
+    // Use Chat Completions API
+    const response = await openai.chat.completions.create({
       model: "gpt-4o",
-      instructions: SYSTEM_INSTRUCTIONS,
-      input: conversationHistory,
-      tools: [
-        {
-          type: "file_search",
-          vector_store_ids: [VECTOR_STORE_ID]
-        }
-      ]
+      messages: messages,
+      max_tokens: 1000,
+      temperature: 0.7,
     });
 
     // Extract the response text
-    let responseText = "";
-    
-    if (response.output) {
-      for (const item of response.output) {
-        if (item.type === "message" && item.content) {
-          for (const content of item.content) {
-            if (content.type === "output_text" || content.type === "text") {
-              responseText = content.text || responseText;
-            }
-          }
-        }
-      }
-    }
+    const responseText = response.choices[0]?.message?.content || "";
 
     // Add assistant response to history
     if (responseText) {
