@@ -1,19 +1,11 @@
 /**
- * Sigrid Agent - Uses OpenAI Agents SDK to run the Shopify agent workflow
+ * Sigrid Agent - Uses OpenAI Responses API directly (no Agents SDK)
+ * Bypasses SDK tool serialization bugs by calling the API directly
  */
-
-import { Agent, Runner, withTrace } from "@openai/agents";
 
 const conversationHistories = new Map();
 
-// File Search connected to the Sigrid Knowledge Base vector store
-// Contains: product sheet, brand foundation, SiPore® mechanism, approved claims,
-// compliance rules, clinical studies summary, FAQ, Trustpilot reviews
-// Note: using raw format instead of fileSearchTool() to avoid SDK serialization bug
-const knowledgeBase = {
-  type: "file_search",
-  vector_store_ids: ["vs_69b9b4d778a88191bf5770b02d003dbb"],
-};
+const VECTOR_STORE_ID = "vs_69b9b4d778a88191bf5770b02d003dbb";
 
 const AGENT_INSTRUCTIONS = `You are SIGRID Product Assistant, a customer-facing AI assistant embedded on a Shopify product page.
 
@@ -210,20 +202,8 @@ Never trade accuracy for helpfulness.
 
 Answer in the same language as the user's question (Swedish if they write in Swedish).`;
 
-const shopifyAgent = new Agent({
-  name: "Sigrid AI",
-  instructions: AGENT_INSTRUCTIONS,
-  model: "gpt-4.1",
-  tools: [knowledgeBase],
-  modelSettings: {
-    temperature: 1,
-    topP: 1,
-    maxTokens: 2048,
-  },
-});
-
 /**
- * Run the Sigrid agent with the given message
+ * Run the Sigrid agent using OpenAI Responses API directly
  * @param {string} sessionId - Unique session identifier
  * @param {string} userMessage - The user's message
  * @returns {Promise<string>} - The agent's response
@@ -231,63 +211,67 @@ const shopifyAgent = new Agent({
 export async function runSigridAgent(sessionId, userMessage) {
   const apiKey = process.env.OPENAI_API_KEY?.trim();
 
-  if (!apiKey) {
-    throw new Error("OPENAI_API_KEY is not configured");
-  }
-
-  if (!apiKey.startsWith("sk-")) {
-    throw new Error("Invalid API key format");
-  }
+  if (!apiKey) throw new Error("OPENAI_API_KEY is not configured");
+  if (!apiKey.startsWith("sk-")) throw new Error("Invalid API key format");
 
   let history = conversationHistories.get(sessionId) || [];
 
-  history.push({
-    role: "user",
-    content: [{ type: "input_text", text: userMessage }],
-  });
+  // Add user message to history
+  history.push({ role: "user", content: userMessage });
 
   try {
-    const result = await withTrace(
-      "Sigrid Shopify agent",
-      async () => {
-        const runner = new Runner({
-          traceMetadata: {
-            __trace_source__: "agent-builder",
-            workflow_id:
-              "wf_69b9ad105df08190a272a5704eff33de0b0f808a83a0a850",
-          },
-        });
-        return await runner.run(shopifyAgent, history);
-      }
-    );
+    const body = {
+      model: "gpt-4.1",
+      instructions: AGENT_INSTRUCTIONS,
+      input: history,
+      tools: [
+        {
+          type: "file_search",
+          vector_store_ids: [VECTOR_STORE_ID],
+        },
+      ],
+    };
 
-    history.push(...result.newItems.map((item) => item.rawItem));
+    const res = await fetch("https://api.openai.com/v1/responses", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(body),
+    });
 
-    if (history.length > 40) {
-      history = history.slice(-40);
+    if (!res.ok) {
+      const err = await res.text();
+      throw new Error(`OpenAI API error ${res.status}: ${err}`);
     }
+
+    const data = await res.json();
+
+    // Extract text from response output
+    let assistantText = "";
+    for (const item of data.output || []) {
+      if (item.type === "message" && item.role === "assistant") {
+        for (const part of item.content || []) {
+          if (part.type === "output_text") {
+            assistantText += part.text;
+          }
+        }
+      }
+    }
+
+    if (!assistantText) {
+      throw new Error("No text in response");
+    }
+
+    // Update history with assistant reply
+    history.push({ role: "assistant", content: assistantText });
+
+    // Trim history to last 40 messages
+    if (history.length > 40) history = history.slice(-40);
     conversationHistories.set(sessionId, history);
 
-    if (typeof result.finalOutput === "string" && result.finalOutput) {
-      return result.finalOutput;
-    }
-
-    const lastAssistant = [...result.newItems]
-      .reverse()
-      .find((item) => item.rawItem.role === "assistant");
-
-    if (lastAssistant?.rawItem?.content) {
-      const content = lastAssistant.rawItem.content;
-      if (typeof content === "string") return content;
-      if (Array.isArray(content)) {
-        const textPart = content.find(
-          (c) => c.type === "output_text" || c.type === "text"
-        );
-        if (textPart?.text) return textPart.text;
-      }
-    }
-
-    return "I couldn't process that. Please try again.";
+    return assistantText;
   } catch (error) {
     console.error("Agent error:", error.message);
     throw error;
