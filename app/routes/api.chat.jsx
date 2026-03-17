@@ -62,9 +62,10 @@ export const action = async ({ request }) => {
     // Run the Sigrid agent
     const response = await runSigridAgent(sid, message);
 
-    // Detect if agent suggested the quiz — log that too
-    const suggestedQuiz =
-      /quiz|typeform/i.test(response);
+    // Detect if agent suggested the quiz via [SUGGEST_QUIZ] tag, then strip it
+    const suggestedQuiz = response.includes("[SUGGEST_QUIZ]");
+    const cleanResponse = response.replace(/\[SUGGEST_QUIZ\]/g, "").trimEnd();
+
     if (suggestedQuiz) {
       trackKlaviyoEvent(
         "Sigrid AI Quiz Suggested",
@@ -75,7 +76,7 @@ export const action = async ({ request }) => {
 
     return json(
       {
-        response,
+        response: cleanResponse,
         sessionId: sid,
         suggestedQuiz,
       },

@@ -4,8 +4,10 @@
  */
 
 const conversationHistories = new Map();
+const messageCounters = new Map(); // Track message count per session
 
 const VECTOR_STORE_ID = "vs_69b9b4d778a88191bf5770b02d003dbb";
+const QUIZ_TRIGGER_AFTER_MESSAGES = 3; // Auto-suggest quiz after this many user messages
 
 const AGENT_INSTRUCTIONS = `You are SIGRID Product Assistant, a customer-facing AI assistant embedded on a Shopify product page.
 
@@ -200,6 +202,22 @@ IMPORTANT DEFAULT RULE
 When in doubt, be conservative, brief, and source-based.
 Never trade accuracy for helpfulness.
 
+15. QUIZ SUGGESTION RULE
+You have access to a short personal suitability quiz that helps users find out if SIGRID is right for them.
+
+Suggest the quiz by adding the exact token [SUGGEST_QUIZ] at the very end of your response (after all other text) when ANY of these apply:
+- The user asks if SIGRID is right for them personally
+- The user asks "should I try it", "is it for me", "will it work for me", "passar det mig", "är det för mig"
+- The user mentions their own health situation, weight, diet, or lifestyle in relation to SIGRID
+- The user seems uncertain or on the fence about buying
+- The system indicates it is time to suggest the quiz (you will see a note in the conversation)
+
+When you include [SUGGEST_QUIZ], also write a short natural sentence just before it suggesting the quiz, for example:
+- "Want to find out if SIGRID is a good fit for you? Take our short quiz."
+- "Vill du ta vårt korta quiz och se om SIGRID passar dig?"
+
+Only suggest the quiz ONCE per conversation. Do not add [SUGGEST_QUIZ] if you have already done so.
+
 Answer in the same language as the user's question (Swedish if they write in Swedish).`;
 
 /**
@@ -216,13 +234,28 @@ export async function runSigridAgent(sessionId, userMessage) {
 
   let history = conversationHistories.get(sessionId) || [];
 
+  // Track message count and check if quiz has already been suggested
+  const count = (messageCounters.get(sessionId) || 0) + 1;
+  messageCounters.set(sessionId, count);
+  const quizAlreadySuggested = history.some(
+    (m) => m.role === "assistant" && m.content?.includes("[SUGGEST_QUIZ]")
+  );
+
   // Add user message to history
   history.push({ role: "user", content: userMessage });
+
+  // Inject a system hint after threshold reached (and quiz not yet suggested)
+  let instructions = AGENT_INSTRUCTIONS;
+  if (count >= QUIZ_TRIGGER_AFTER_MESSAGES && !quizAlreadySuggested) {
+    instructions =
+      AGENT_INSTRUCTIONS +
+      "\n\n[SYSTEM NOTE: The user has now sent several messages. If it feels natural, now is a good time to suggest the quiz by including [SUGGEST_QUIZ] at the very end of your response.]";
+  }
 
   try {
     const body = {
       model: "gpt-4.1",
-      instructions: AGENT_INSTRUCTIONS,
+      instructions,
       input: history,
       tools: [
         {
