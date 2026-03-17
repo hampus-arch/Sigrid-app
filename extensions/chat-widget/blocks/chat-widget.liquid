@@ -2,6 +2,8 @@
 <div id="sigrid-chat-widget-container"></div>
 
 <style>
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;1,500;1,600&display=swap');
+
   #sigrid-chat-widget-container {
     position: fixed;
     bottom: {{ block.settings.position_bottom }}px;
@@ -91,23 +93,23 @@
     width: 280px;
     height: 280px;
     border-radius: 999px;
-    background: rgba(6, 76, 68, 0.8);
-    filter: blur(160px);
-    bottom: -80px;
-    right: 10px;
+    background: rgba(6, 76, 68, 0.7);
+    filter: blur(150px);
+    bottom: -60px;
+    right: -20px;
     pointer-events: none;
   }
 
   .sigrid-bg::after {
     content: '';
     position: absolute;
-    width: 414px;
-    height: 414px;
+    width: 380px;
+    height: 380px;
     border-radius: 999px;
-    background: rgba(178, 210, 193, 0.9);
-    filter: blur(220px);
-    bottom: -160px;
-    left: -60px;
+    background: rgba(178, 210, 193, 0.85);
+    filter: blur(200px);
+    bottom: -120px;
+    left: -40px;
     pointer-events: none;
   }
 
@@ -117,7 +119,7 @@
     display: flex;
     flex-direction: column;
     height: 100%;
-    padding: 24px 20px 20px;
+    padding: 28px 20px 20px;
     z-index: 1;
   }
 
@@ -126,34 +128,38 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-bottom: 20px;
+    margin-bottom: 0;
     flex-shrink: 0;
   }
 
   .sigrid-logo-area {
     display: flex;
-    align-items: center;
-    gap: 6px;
+    align-items: baseline;
+    gap: 5px;
   }
 
   .sigrid-logo-text {
-    font-size: 16px;
-    letter-spacing: 0.12em;
+    font-family: 'Playfair Display', Georgia, 'Times New Roman', serif;
+    font-size: 18px;
     font-weight: 600;
+    font-style: italic;
     color: #064C44;
+    letter-spacing: 0.02em;
   }
 
   .sigrid-logo-ai {
-    font-size: 16px;
-    font-weight: 500;
+    font-family: -apple-system, system-ui, sans-serif;
+    font-size: 18px;
+    font-weight: 400;
     color: #064C44;
+    letter-spacing: 0.01em;
   }
 
   .sigrid-close-btn {
     width: 28px;
     height: 28px;
     border-radius: 9999px;
-    background: rgba(0, 0, 0, 0.06);
+    background: rgba(0, 0, 0, 0.05);
     border: none;
     cursor: pointer;
     display: flex;
@@ -172,13 +178,16 @@
     height: 14px;
   }
 
-  /* Title / greeting area (shown when no messages) */
+  /* Title */
   .sigrid-title {
-    font-size: 26px;
-    line-height: 1.25;
+    font-size: 28px;
+    line-height: 1.2;
     font-weight: 500;
     color: #160112;
-    margin-bottom: 24px;
+    letter-spacing: -0.01em;
+    text-align: center;
+    padding: 48px 20px 0;
+    margin-bottom: 0;
     flex-shrink: 0;
   }
 
@@ -188,9 +197,9 @@
     overflow-y: auto;
     display: flex;
     flex-direction: column;
-    gap: 14px;
-    padding-right: 4px;
-    margin-bottom: 16px;
+    gap: 12px;
+    padding: 24px 0 8px;
+    margin-bottom: 12px;
   }
 
   .sigrid-messages::-webkit-scrollbar {
@@ -202,7 +211,7 @@
   }
 
   .sigrid-messages::-webkit-scrollbar-thumb {
-    background: rgba(0, 0, 0, 0.12);
+    background: rgba(0, 0, 0, 0.1);
     border-radius: 2px;
   }
 
@@ -210,7 +219,7 @@
   .sigrid-msg-group {
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: 3px;
   }
 
   .sigrid-msg-group.user {
@@ -222,22 +231,27 @@
   }
 
   .sigrid-msg-label {
-    font-size: 11px;
-    color: rgba(0, 0, 0, 0.6);
-    text-transform: lowercase;
-    padding: 0 2px;
+    font-size: 10px;
+    font-weight: 500;
+    color: rgba(0, 0, 0, 0.5);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    padding: 0 4px;
+    margin-bottom: 1px;
   }
 
   .sigrid-msg-bubble {
-    max-width: 85%;
+    max-width: 82%;
     background: rgba(255, 255, 255, 0.5);
-    border: 1px solid rgba(255, 255, 255, 1);
-    border-radius: 8px;
-    padding: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.9);
+    border-radius: 12px;
+    padding: 10px 12px;
     font-size: 13px;
     line-height: 1.5;
     color: #160112;
     word-wrap: break-word;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
   }
 
   /* Typing indicator */
@@ -246,15 +260,17 @@
     gap: 5px;
     padding: 14px 14px;
     background: rgba(255, 255, 255, 0.5);
-    border: 1px solid rgba(255, 255, 255, 1);
-    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.9);
+    border-radius: 12px;
     align-self: flex-start;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
   }
 
   .sigrid-typing span {
     width: 6px;
     height: 6px;
-    background: rgba(0, 0, 0, 0.3);
+    background: rgba(6, 76, 68, 0.4);
     border-radius: 9999px;
     animation: sigrid-bounce 1.2s ease-in-out infinite;
   }
@@ -273,37 +289,91 @@
     }
   }
 
+  /* Quiz CTA button */
+  .sigrid-quiz-cta {
+    display: none;
+    align-items: center;
+    justify-content: space-between;
+    background: rgba(6, 76, 68, 0.08);
+    border: 1px solid rgba(6, 76, 68, 0.2);
+    border-radius: 12px;
+    padding: 10px 14px;
+    margin-bottom: 8px;
+    text-decoration: none;
+    color: #064C44;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.15s ease, border-color 0.15s ease;
+    flex-shrink: 0;
+  }
+
+  .sigrid-quiz-cta:hover {
+    background: rgba(6, 76, 68, 0.14);
+    border-color: rgba(6, 76, 68, 0.35);
+  }
+
+  .sigrid-quiz-cta.visible {
+    display: flex;
+  }
+
+  .sigrid-quiz-cta-text {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+  }
+
+  .sigrid-quiz-cta-label {
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    opacity: 0.6;
+  }
+
+  .sigrid-quiz-cta-title {
+    font-size: 13px;
+    font-weight: 500;
+  }
+
+  .sigrid-quiz-cta-arrow {
+    font-size: 16px;
+    opacity: 0.6;
+  }
+
   /* Input bar */
   .sigrid-composer {
     flex-shrink: 0;
-    padding: 0 4px;
+    padding: 0 0px;
   }
 
   .sigrid-input-wrapper {
     display: flex;
     align-items: center;
-    gap: 10px;
-    background: #F6F5ED;
+    gap: 8px;
+    background: none;
     border-radius: 24px;
-    border: 1px solid rgba(22, 1, 18, 0.3);
-    padding: 4px 6px 4px 16px;
+    border: 1px solid rgba(22, 1, 18, 0.2);
+    padding: 4px 6px 4px 18px;
     transition: border-color 0.15s ease, box-shadow 0.15s ease;
   }
 
   .sigrid-input-wrapper:focus-within {
-    border-color: rgba(6, 76, 68, 0.5);
-    box-shadow: 0 0 0 3px rgba(6, 76, 68, 0.08);
+    border-color: rgba(6, 76, 68, 0.4);
+    box-shadow: 0 0 0 3px rgba(6, 76, 68, 0.06);
   }
 
   .sigrid-input {
     flex: 1;
     border: none;
-    background: transparent;
+    background: none !important;
     font-size: 14px;
     font-family: inherit;
     color: #160112;
     outline: none;
     padding: 10px 0;
+    -webkit-appearance: none;
+    appearance: none;
   }
 
   .sigrid-input::placeholder {
@@ -314,7 +384,7 @@
     width: 36px;
     height: 36px;
     border-radius: 9999px;
-    background: transparent;
+    background: none !important;
     border: none;
     cursor: pointer;
     display: flex;
@@ -352,12 +422,18 @@
       right: -{{ block.settings.position_right | minus: 12 }}px;
       border-radius: 20px;
     }
+
+    .sigrid-title {
+      font-size: 24px;
+      padding: 32px 12px 0;
+    }
   }
 </style>
 
 <script>
 (function() {
   var API_URL = '{{ block.settings.api_url }}';
+  var QUIZ_URL = '{{ block.settings.quiz_url }}';
   var SESSION_ID = 'sigrid_' + Math.random().toString(36).substr(2, 9) + '_' + Date.now();
 
   var container = document.getElementById('sigrid-chat-widget-container');
@@ -380,6 +456,13 @@
         '</div>' +
         '<div class="sigrid-title">Ask our AI anything</div>' +
         '<div class="sigrid-messages"></div>' +
+        '<button class="sigrid-quiz-cta" type="button">' +
+          '<div class="sigrid-quiz-cta-text">' +
+            '<span class="sigrid-quiz-cta-label">Not sure?</span>' +
+            '<span class="sigrid-quiz-cta-title">Find out if SIGRID is right for you</span>' +
+          '</div>' +
+          '<span class="sigrid-quiz-cta-arrow">→</span>' +
+        '</button>' +
         '<div class="sigrid-composer">' +
           '<div class="sigrid-input-wrapper">' +
             '<input type="text" class="sigrid-input" placeholder="Talk to our expert!" />' +
@@ -398,6 +481,45 @@
   var messagesEl = container.querySelector('.sigrid-messages');
   var input = container.querySelector('.sigrid-input');
   var sendBtn = container.querySelector('.sigrid-send');
+  var quizCta = container.querySelector('.sigrid-quiz-cta');
+
+  // Load Typeform embed SDK if quiz is configured
+  var tfPopup = null;
+  if (QUIZ_URL) {
+    quizCta.classList.add('visible');
+
+    var tfCss = document.createElement('link');
+    tfCss.rel = 'stylesheet';
+    tfCss.href = '//embed.typeform.com/next/css/popup.css';
+    document.head.appendChild(tfCss);
+
+    var tfScript = document.createElement('script');
+    tfScript.src = '//embed.typeform.com/next/embed.js';
+    document.head.appendChild(tfScript);
+  }
+
+  function openTypeformPopup() {
+    if (!QUIZ_URL || !window.tf) return;
+    if (!tfPopup) {
+      tfPopup = window.tf.createPopup(QUIZ_URL, {
+        onSubmit: function(payload) {
+          // Log quiz submission to Klaviyo via API
+          fetch(API_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              action: 'quiz_submitted',
+              sessionId: SESSION_ID,
+              typeformResponseId: payload.responseId
+            })
+          }).catch(function() {});
+        }
+      });
+    }
+    tfPopup.open();
+  }
+
+  quizCta.addEventListener('click', openTypeformPopup);
 
   function toggleChat() {
     isOpen = !isOpen;
@@ -415,7 +537,7 @@
 
     var label = document.createElement('div');
     label.className = 'sigrid-msg-label';
-    label.textContent = role === 'user' ? 'you' : 'sigrid AI';
+    label.textContent = role === 'user' ? 'YOU' : 'SIGRID AI';
 
     var bubble = document.createElement('div');
     bubble.className = 'sigrid-msg-bubble';
@@ -441,6 +563,16 @@
     if (typing) typing.remove();
   }
 
+  // Show quiz CTA prominently when agent suggests quiz
+  function handleQuizSuggested() {
+    if (!QUIZ_URL) return;
+    quizCta.classList.add('visible');
+    // Pulse animation to draw attention
+    quizCta.style.animation = 'none';
+    quizCta.offsetHeight; // reflow
+    quizCta.style.animation = 'sigrid-quiz-pulse 0.4s ease';
+  }
+
   async function sendMessage() {
     var text = input.value.trim();
     if (!text) return;
@@ -463,6 +595,11 @@
       if (res.ok) {
         var data = await res.json();
         addMessage(data.response || 'No response received.', 'assistant');
+
+        // If the agent suggested the quiz, highlight the CTA
+        if (data.suggestedQuiz && QUIZ_URL) {
+          handleQuizSuggested();
+        }
       } else {
         addMessage('Something went wrong. Please try again.', 'assistant');
       }
@@ -500,6 +637,12 @@
       "id": "api_url",
       "label": "API URL",
       "info": "The URL to the Sigrid chat API endpoint, e.g. https://sigrid-chat-widget.vercel.app/api/chat"
+    },
+    {
+      "type": "url",
+      "id": "quiz_url",
+      "label": "Typeform Quiz URL",
+      "info": "Your Typeform quiz link. When set, a 'Find out if SIGRID is right for you' button is shown — and highlighted when the AI suggests the quiz."
     },
     {
       "type": "range",

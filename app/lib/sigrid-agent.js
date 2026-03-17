@@ -2,7 +2,7 @@
  * Sigrid Agent - Uses OpenAI Agents SDK to run the Shopify agent workflow
  */
 
-import { hostedMcpTool, Agent, Runner, withTrace } from "@openai/agents";
+import { hostedMcpTool, fileSearchTool, Agent, Runner, withTrace } from "@openai/agents";
 
 const conversationHistories = new Map();
 
@@ -17,6 +17,13 @@ const mcp = hostedMcpTool({
   ],
   requireApproval: "never",
   serverUrl: "https://sigridstabiliser.se/api/mcp",
+});
+
+// File Search connected to the Sigrid Knowledge Base vector store
+// Contains: product sheet, brand foundation, SiPore® mechanism, approved claims,
+// compliance rules, clinical studies summary, FAQ, Trustpilot reviews
+const knowledgeBase = fileSearchTool({
+  vectorStoreIds: ["vs_69b9b4d778a88191bf5770b02d003dbb"],
 });
 
 const AGENT_INSTRUCTIONS = `You are SIGRID Product Assistant, a customer-facing AI assistant embedded on a Shopify product page.
@@ -215,10 +222,10 @@ Never trade accuracy for helpfulness.
 Answer in the same language as the user's question (Swedish if they write in Swedish).`;
 
 const shopifyAgent = new Agent({
-  name: "Shopify agent",
+  name: "Sigrid AI",
   instructions: AGENT_INSTRUCTIONS,
-  model: "gpt-4o",
-  tools: [mcp],
+  model: "gpt-4.1",
+  tools: [mcp, knowledgeBase],
   modelSettings: {
     temperature: 1,
     topP: 1,
@@ -258,7 +265,7 @@ export async function runSigridAgent(sessionId, userMessage) {
           traceMetadata: {
             __trace_source__: "agent-builder",
             workflow_id:
-              "wf_69713d3cd9b081909ef043c8f694feaa072ce62a0e48798f",
+              "wf_69b9ad105df08190a272a5704eff33de0b0f808a83a0a850",
           },
         });
         return await runner.run(shopifyAgent, history);
