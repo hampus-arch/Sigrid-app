@@ -2,22 +2,9 @@
  * Sigrid Agent - Uses OpenAI Agents SDK to run the Shopify agent workflow
  */
 
-import { hostedMcpTool, Agent, Runner, withTrace } from "@openai/agents";
+import { Agent, Runner, withTrace } from "@openai/agents";
 
 const conversationHistories = new Map();
-
-const mcp = hostedMcpTool({
-  serverLabel: "sigridstabiliser",
-  allowedTools: [
-    "search_shop_catalog",
-    "get_cart",
-    "update_cart",
-    "search_shop_policies_and_faqs",
-    "get_product_details",
-  ],
-  requireApproval: "never",
-  serverUrl: "https://sigridstabiliser.se/api/mcp",
-});
 
 // File Search connected to the Sigrid Knowledge Base vector store
 // Contains: product sheet, brand foundation, SiPore® mechanism, approved claims,
@@ -227,7 +214,7 @@ const shopifyAgent = new Agent({
   name: "Sigrid AI",
   instructions: AGENT_INSTRUCTIONS,
   model: "gpt-4.1",
-  tools: [mcp, knowledgeBase],
+  tools: [knowledgeBase],
   modelSettings: {
     temperature: 1,
     topP: 1,
