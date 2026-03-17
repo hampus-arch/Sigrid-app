@@ -2,7 +2,7 @@
  * Sigrid Agent - Uses OpenAI Agents SDK to run the Shopify agent workflow
  */
 
-import { hostedMcpTool, fileSearchTool, Agent, Runner, withTrace } from "@openai/agents";
+import { hostedMcpTool, Agent, Runner, withTrace } from "@openai/agents";
 
 const conversationHistories = new Map();
 
@@ -22,9 +22,11 @@ const mcp = hostedMcpTool({
 // File Search connected to the Sigrid Knowledge Base vector store
 // Contains: product sheet, brand foundation, SiPore® mechanism, approved claims,
 // compliance rules, clinical studies summary, FAQ, Trustpilot reviews
-const knowledgeBase = fileSearchTool({
-  vectorStoreIds: ["vs_69b9b4d778a88191bf5770b02d003dbb"],
-});
+// Note: using raw format instead of fileSearchTool() to avoid SDK serialization bug
+const knowledgeBase = {
+  type: "file_search",
+  vector_store_ids: ["vs_69b9b4d778a88191bf5770b02d003dbb"],
+};
 
 const AGENT_INSTRUCTIONS = `You are SIGRID Product Assistant, a customer-facing AI assistant embedded on a Shopify product page.
 
