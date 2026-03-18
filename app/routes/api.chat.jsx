@@ -21,7 +21,7 @@ export const action = async ({ request }) => {
 
   try {
     const body = await request.json();
-    const { message, sessionId, action: chatAction, email } = body;
+    const { message, sessionId, action: chatAction, email, productInfo } = body;
     const sid = sessionId || "default";
 
     // Handle clear history action
@@ -59,8 +59,8 @@ export const action = async ({ request }) => {
       email || null
     );
 
-    // Run the Sigrid agent
-    const response = await runSigridAgent(sid, message);
+    // Run the Sigrid agent (pass optional product info from Theme Editor)
+    const response = await runSigridAgent(sid, message, productInfo || null);
 
     // Detect if agent suggested the quiz via [SUGGEST_QUIZ] tag, then strip it
     const suggestedQuiz = response.includes("[SUGGEST_QUIZ]");

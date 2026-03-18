@@ -240,7 +240,7 @@ Answer in the same language as the user's question (Swedish if they write in Swe
  * @param {string} userMessage - The user's message
  * @returns {Promise<string>} - The agent's response
  */
-export async function runSigridAgent(sessionId, userMessage) {
+export async function runSigridAgent(sessionId, userMessage, themeProductInfo = null) {
   const apiKey = process.env.OPENAI_API_KEY?.trim();
 
   if (!apiKey) throw new Error("OPENAI_API_KEY is not configured");
@@ -262,7 +262,12 @@ export async function runSigridAgent(sessionId, userMessage) {
   const productContext = await getProductContext();
 
   let instructions = AGENT_INSTRUCTIONS;
-  if (productContext) {
+
+  // Inject product info from Theme Editor (manual override, always preferred)
+  if (themeProductInfo) {
+    instructions += `\n\nPRODUCT & PRICING INFO (use this to answer pricing questions):\n${themeProductInfo}`;
+  } else if (productContext) {
+    // Fallback: live Shopify Storefront API data
     instructions += `\n\n${productContext}`;
   }
 

@@ -498,6 +498,7 @@
 (function() {
   var API_URL = '{{ block.settings.api_url }}';
   var QUIZ_URL = '{{ block.settings.quiz_url }}';
+  var PRODUCT_INFO = '{{ block.settings.product_info | escape }}';
   var SESSION_ID = 'sigrid_' + Math.random().toString(36).substr(2, 9) + '_' + Date.now();
 
   var container = document.getElementById('sigrid-chat-widget-container');
@@ -668,7 +669,7 @@
       var res = await fetch(API_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: text, sessionId: SESSION_ID })
+        body: JSON.stringify({ message: text, sessionId: SESSION_ID, productInfo: PRODUCT_INFO || null })
       });
 
       hideTyping();
@@ -724,6 +725,17 @@
       "id": "quiz_url",
       "label": "Typeform Quiz URL",
       "info": "Your Typeform quiz link. The quiz button is hidden until the AI suggests it in conversation."
+    },
+    {
+      "type": "header",
+      "content": "Product information"
+    },
+    {
+      "type": "textarea",
+      "id": "product_info",
+      "label": "Product & pricing info",
+      "info": "This is sent to the AI so it can answer pricing questions. Example: 'SIGRID costs 399 SEK/month. Subscribe and save 10%. Free shipping on all orders.'",
+      "default": ""
     },
     {
       "type": "header",
