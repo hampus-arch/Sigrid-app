@@ -16,6 +16,11 @@ export async function trackKlaviyoEvent(eventName, properties = {}, email = null
   const apiKey = process.env.KLAVIYO_API_KEY;
   if (!apiKey) return; // silently skip if not configured
 
+  // Klaviyo requires a profile identifier — use email if known, otherwise anonymous_id
+  const profileAttributes = email
+    ? { email }
+    : { anonymous_id: `sigrid_${properties.session_id || "unknown"}` };
+
   const payload = {
     data: {
       type: "event",
@@ -31,16 +36,12 @@ export async function trackKlaviyoEvent(eventName, properties = {}, email = null
           ...properties,
         },
         time: new Date().toISOString(),
-        ...(email
-          ? {
-              profile: {
-                data: {
-                  type: "profile",
-                  attributes: { email },
-                },
-              },
-            }
-          : {}),
+        profile: {
+          data: {
+            type: "profile",
+            attributes: profileAttributes,
+          },
+        },
       },
     },
   };
