@@ -312,6 +312,18 @@
     -webkit-backdrop-filter: blur(8px);
   }
 
+  /* Clickable links inside messages */
+  .sigrid-msg-bubble .sigrid-link {
+    color: #064C44;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    word-break: break-all;
+  }
+
+  .sigrid-msg-bubble .sigrid-link:hover {
+    opacity: 0.75;
+  }
+
   /* Typing indicator */
   .sigrid-typing {
     display: flex;
@@ -613,6 +625,25 @@
   toggle.addEventListener('click', toggleChat);
   closeBtn.addEventListener('click', toggleChat);
 
+  function linkify(text) {
+    // Escape HTML first
+    var escaped = text
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;');
+    // Make URLs clickable
+    escaped = escaped.replace(
+      /(https?:\/\/[^\s<>"]+)/g,
+      '<a href="$1" target="_blank" rel="noopener" class="sigrid-link">$1</a>'
+    );
+    // Make email addresses clickable
+    escaped = escaped.replace(
+      /([a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,})/g,
+      '<a href="mailto:$1" class="sigrid-link">$1</a>'
+    );
+    return escaped;
+  }
+
   function addMessage(content, role) {
     var group = document.createElement('div');
     group.className = 'sigrid-msg-group ' + role;
@@ -623,7 +654,7 @@
 
     var bubble = document.createElement('div');
     bubble.className = 'sigrid-msg-bubble';
-    bubble.textContent = content;
+    bubble.innerHTML = linkify(content);
 
     group.appendChild(label);
     group.appendChild(bubble);
@@ -734,8 +765,7 @@
       "type": "textarea",
       "id": "product_info",
       "label": "Product & pricing info",
-      "info": "This is sent to the AI so it can answer pricing questions. Example: 'SIGRID costs 399 SEK/month. Subscribe and save 10%. Free shipping on all orders.'",
-      "default": ""
+      "info": "This is sent to the AI so it can answer pricing questions. Example: SIGRID costs 399 SEK/month. Subscribe and save 10%. Free shipping on all orders."
     },
     {
       "type": "header",
