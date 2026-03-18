@@ -60,6 +60,8 @@
     flex-direction: column;
     overflow: hidden;
     box-shadow: 0 18px 45px rgba(0, 0, 0, 0.18), 0 0 0 1px rgba(0,0,0,0.03);
+    transform: scale({{ block.settings.widget_scale | divided_by: 100.0 }});
+    transform-origin: bottom right;
   }
 
   .sigrid-window.open {
@@ -817,7 +819,17 @@
     },
     {
       "type": "header",
-      "content": "Position"
+      "content": "Size & position"
+    },
+    {
+      "type": "range",
+      "id": "widget_scale",
+      "label": "Widget size",
+      "min": 70,
+      "max": 120,
+      "step": 5,
+      "default": 100,
+      "unit": "%"
     },
     {
       "type": "range",
