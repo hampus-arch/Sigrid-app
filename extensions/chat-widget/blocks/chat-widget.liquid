@@ -121,6 +121,7 @@
     height: 100%;
     padding: 28px 20px 20px;
     z-index: 1;
+    overflow: hidden;
   }
 
   /* Header */
@@ -178,17 +179,74 @@
     height: 14px;
   }
 
-  /* Title */
-  .sigrid-title {
-    font-size: 28px;
-    line-height: 1.2;
+  /* Intro overlay */
+  .sigrid-intro {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 28px 28px 80px;
+    pointer-events: none;
+    z-index: 2;
+    transition: opacity 0.5s ease, transform 0.5s ease;
+  }
+
+  .sigrid-intro.dismissing {
+    opacity: 0;
+    transform: translateY(-10px);
+    pointer-events: none;
+  }
+
+  .sigrid-intro-sparkle {
+    font-size: 22px;
+    color: #064C44;
+    opacity: 0;
+    animation: sigrid-fade-up 0.6s ease 0.15s forwards;
+    margin-bottom: 18px;
+    letter-spacing: 0.1em;
+  }
+
+  .sigrid-intro-line1 {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 30px;
     font-weight: 500;
+    font-style: italic;
     color: #160112;
-    letter-spacing: -0.01em;
+    line-height: 1.2;
     text-align: center;
-    padding: 48px 20px 0;
-    margin-bottom: 0;
-    flex-shrink: 0;
+    opacity: 0;
+    animation: sigrid-fade-up 0.7s ease 0.4s forwards;
+    margin-bottom: 6px;
+  }
+
+  .sigrid-intro-line2 {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 30px;
+    font-weight: 500;
+    font-style: italic;
+    color: #064C44;
+    line-height: 1.2;
+    text-align: center;
+    opacity: 0;
+    animation: sigrid-fade-up 0.7s ease 0.65s forwards;
+    margin-bottom: 24px;
+  }
+
+  .sigrid-intro-hint {
+    font-size: 12px;
+    font-weight: 400;
+    color: rgba(22, 1, 18, 0.45);
+    letter-spacing: 0.04em;
+    text-align: center;
+    opacity: 0;
+    animation: sigrid-fade-up 0.6s ease 1.0s forwards;
+  }
+
+  @keyframes sigrid-fade-up {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
   }
 
   /* Messages Area */
@@ -429,9 +487,9 @@
       border-radius: 20px;
     }
 
-    .sigrid-title {
-      font-size: 24px;
-      padding: 32px 12px 0;
+    .sigrid-intro-line1,
+    .sigrid-intro-line2 {
+      font-size: 26px;
     }
   }
 </style>
@@ -460,18 +518,23 @@
             '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>' +
           '</button>' +
         '</div>' +
-        '<div class="sigrid-title">Ask our AI anything</div>' +
+        '<div class="sigrid-intro" id="sigrid-intro">' +
+          '<div class="sigrid-intro-sparkle">✦</div>' +
+          '<div class="sigrid-intro-line1">{{ block.settings.intro_line1 | escape }}</div>' +
+          '<div class="sigrid-intro-line2">{{ block.settings.intro_line2 | escape }}</div>' +
+          '<div class="sigrid-intro-hint">{{ block.settings.intro_hint | escape }}</div>' +
+        '</div>' +
         '<div class="sigrid-messages"></div>' +
         '<button class="sigrid-quiz-cta" type="button">' +
           '<div class="sigrid-quiz-cta-text">' +
-            '<span class="sigrid-quiz-cta-label">Not sure?</span>' +
-            '<span class="sigrid-quiz-cta-title">Find out if SIGRID is right for you</span>' +
+            '<span class="sigrid-quiz-cta-label">{{ block.settings.quiz_cta_label | escape }}</span>' +
+            '<span class="sigrid-quiz-cta-title">{{ block.settings.quiz_cta_title | escape }}</span>' +
           '</div>' +
           '<span class="sigrid-quiz-cta-arrow">→</span>' +
         '</button>' +
         '<div class="sigrid-composer">' +
           '<div class="sigrid-input-wrapper">' +
-            '<input type="text" class="sigrid-input" placeholder="Talk to our expert!" />' +
+            '<input type="text" class="sigrid-input" placeholder="{{ block.settings.input_placeholder | escape }}" />' +
             '<button class="sigrid-send" aria-label="Send">' +
               '<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M4.5 19.5L19.5 12L4.5 4.5L4.5 10.5L13.5 12L4.5 13.5L4.5 19.5Z" fill="#064C44"/></svg>' +
             '</button>' +
@@ -481,19 +544,31 @@
     '</div>';
 
   var isOpen = false;
+  var introShown = true;
   var toggle = container.querySelector('.sigrid-toggle');
   var closeBtn = container.querySelector('.sigrid-close-btn');
   var chatWindow = container.querySelector('.sigrid-window');
   var messagesEl = container.querySelector('.sigrid-messages');
+  var introEl = container.querySelector('#sigrid-intro');
   var input = container.querySelector('.sigrid-input');
   var sendBtn = container.querySelector('.sigrid-send');
   var quizCta = container.querySelector('.sigrid-quiz-cta');
 
+  function dismissIntro() {
+    if (!introShown) return;
+    introShown = false;
+    introEl.classList.add('dismissing');
+    setTimeout(function() { introEl.style.display = 'none'; }, 500);
+  }
+
+  // Dismiss intro on first keystroke
+  input.addEventListener('input', function() {
+    if (introShown && input.value.length > 0) dismissIntro();
+  });
+
   // Load Typeform embed SDK if quiz is configured
   var tfPopup = null;
   if (QUIZ_URL) {
-    quizCta.classList.add('visible');
-
     var tfCss = document.createElement('link');
     tfCss.rel = 'stylesheet';
     tfCss.href = '//embed.typeform.com/next/css/popup.css';
@@ -587,6 +662,7 @@
     var text = input.value.trim();
     if (!text) return;
 
+    dismissIntro();
     input.value = '';
     sendBtn.disabled = true;
 
@@ -652,7 +728,59 @@
       "type": "url",
       "id": "quiz_url",
       "label": "Typeform Quiz URL",
-      "info": "Your Typeform quiz link. When set, a 'Find out if SIGRID is right for you' button is shown — and highlighted when the AI suggests the quiz."
+      "info": "Your Typeform quiz link. The quiz button is hidden until the AI suggests it in conversation."
+    },
+    {
+      "type": "header",
+      "content": "Intro animation text"
+    },
+    {
+      "type": "text",
+      "id": "intro_line1",
+      "label": "Intro — line 1",
+      "default": "Ask anything"
+    },
+    {
+      "type": "text",
+      "id": "intro_line2",
+      "label": "Intro — line 2 (highlighted)",
+      "default": "about your health"
+    },
+    {
+      "type": "text",
+      "id": "intro_hint",
+      "label": "Intro — hint text",
+      "default": "Our AI answers instantly"
+    },
+    {
+      "type": "header",
+      "content": "Chat labels"
+    },
+    {
+      "type": "text",
+      "id": "input_placeholder",
+      "label": "Input placeholder",
+      "default": "Talk to our expert!"
+    },
+    {
+      "type": "header",
+      "content": "Quiz CTA button"
+    },
+    {
+      "type": "text",
+      "id": "quiz_cta_label",
+      "label": "Quiz button — small label",
+      "default": "Not sure?"
+    },
+    {
+      "type": "text",
+      "id": "quiz_cta_title",
+      "label": "Quiz button — main text",
+      "default": "Find out if SIGRID is right for you"
+    },
+    {
+      "type": "header",
+      "content": "Position"
     },
     {
       "type": "range",
