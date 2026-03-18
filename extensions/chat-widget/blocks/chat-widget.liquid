@@ -4,6 +4,146 @@
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;1,500;1,600&display=swap');
 
+  /* ─────────────────────────────────────────────
+     THEME VARIABLES — Original (default)
+  ───────────────────────────────────────────── */
+  #sigrid-chat-widget-container {
+    --sigrid-bg:                  #F6F5ED;
+    --sigrid-glow1:               rgba(6, 76, 68, 0.7);
+    --sigrid-glow2:               rgba(178, 210, 193, 0.85);
+    --sigrid-toggle-bg:           #064C44;
+    --sigrid-toggle-icon:         #ffffff;
+    --sigrid-accent:              #064C44;
+    --sigrid-text:                #160112;
+    --sigrid-text-muted:          rgba(22, 1, 18, 0.45);
+    --sigrid-msg-label:           rgba(0, 0, 0, 0.5);
+    --sigrid-bubble-bg:           rgba(255, 255, 255, 0.5);
+    --sigrid-bubble-border:       rgba(255, 255, 255, 0.9);
+    --sigrid-typing-dot:          rgba(6, 76, 68, 0.4);
+    --sigrid-quiz-bg:             rgba(6, 76, 68, 0.08);
+    --sigrid-quiz-border:         rgba(6, 76, 68, 0.2);
+    --sigrid-quiz-hover-bg:       rgba(6, 76, 68, 0.14);
+    --sigrid-quiz-hover-border:   rgba(6, 76, 68, 0.35);
+    --sigrid-quiz-pulse:          rgba(6, 76, 68, 0.3);
+    --sigrid-input-border:        rgba(22, 1, 18, 0.2);
+    --sigrid-input-focus-border:  rgba(6, 76, 68, 0.4);
+    --sigrid-input-focus-shadow:  rgba(6, 76, 68, 0.06);
+    --sigrid-input-text:          #160112;
+    --sigrid-input-placeholder:   #56637E;
+    --sigrid-send-hover:          rgba(6, 76, 68, 0.08);
+    --sigrid-close-bg:            rgba(0, 0, 0, 0.05);
+    --sigrid-close-hover:         rgba(0, 0, 0, 0.1);
+    --sigrid-scrollbar:           rgba(0, 0, 0, 0.1);
+  }
+
+  /* ─────────────────────────────────────────────
+     THEME: Forest — dark SIGRID Green
+     Covers/Hero palette: SIGRID Green bg + Light Sand text
+  ───────────────────────────────────────────── */
+  {% if block.settings.theme_variant == 'forest' %}
+  #sigrid-chat-widget-container {
+    --sigrid-bg:                  #1f5d52;
+    --sigrid-glow1:               rgba(23, 70, 62, 0.95);
+    --sigrid-glow2:               rgba(247, 245, 238, 0.1);
+    --sigrid-toggle-bg:           #f7f5ee;
+    --sigrid-toggle-icon:         #1f5d52;
+    --sigrid-accent:              #E4EFE5;
+    --sigrid-text:                #f7f5ee;
+    --sigrid-text-muted:          rgba(247, 245, 238, 0.5);
+    --sigrid-msg-label:           rgba(247, 245, 238, 0.45);
+    --sigrid-bubble-bg:           rgba(0, 0, 0, 0.18);
+    --sigrid-bubble-border:       rgba(255, 255, 255, 0.1);
+    --sigrid-typing-dot:          rgba(228, 239, 229, 0.5);
+    --sigrid-quiz-bg:             rgba(247, 245, 238, 0.1);
+    --sigrid-quiz-border:         rgba(247, 245, 238, 0.25);
+    --sigrid-quiz-hover-bg:       rgba(247, 245, 238, 0.18);
+    --sigrid-quiz-hover-border:   rgba(247, 245, 238, 0.4);
+    --sigrid-quiz-pulse:          rgba(228, 239, 229, 0.4);
+    --sigrid-input-border:        rgba(247, 245, 238, 0.28);
+    --sigrid-input-focus-border:  rgba(228, 239, 229, 0.55);
+    --sigrid-input-focus-shadow:  rgba(228, 239, 229, 0.07);
+    --sigrid-input-text:          #f7f5ee;
+    --sigrid-input-placeholder:   rgba(247, 245, 238, 0.42);
+    --sigrid-send-hover:          rgba(247, 245, 238, 0.1);
+    --sigrid-close-bg:            rgba(247, 245, 238, 0.1);
+    --sigrid-close-hover:         rgba(247, 245, 238, 0.18);
+    --sigrid-scrollbar:           rgba(247, 245, 238, 0.2);
+  }
+  {% endif %}
+
+  /* ─────────────────────────────────────────────
+     THEME: Sand — warm neutral
+     Alternate palette: Sand bg + Dark Green accents
+  ───────────────────────────────────────────── */
+  {% if block.settings.theme_variant == 'sand' %}
+  #sigrid-chat-widget-container {
+    --sigrid-bg:                  #eae7d8;
+    --sigrid-glow1:               rgba(23, 70, 62, 0.4);
+    --sigrid-glow2:               rgba(197, 186, 166, 0.75);
+    --sigrid-toggle-bg:           #17463e;
+    --sigrid-toggle-icon:         #ffffff;
+    --sigrid-accent:              #17463e;
+    --sigrid-text:                #1a1a1b;
+    --sigrid-text-muted:          rgba(26, 26, 27, 0.45);
+    --sigrid-msg-label:           rgba(26, 26, 27, 0.45);
+    --sigrid-bubble-bg:           rgba(255, 255, 255, 0.48);
+    --sigrid-bubble-border:       rgba(255, 255, 255, 0.85);
+    --sigrid-typing-dot:          rgba(23, 70, 62, 0.4);
+    --sigrid-quiz-bg:             rgba(23, 70, 62, 0.07);
+    --sigrid-quiz-border:         rgba(23, 70, 62, 0.2);
+    --sigrid-quiz-hover-bg:       rgba(23, 70, 62, 0.13);
+    --sigrid-quiz-hover-border:   rgba(23, 70, 62, 0.33);
+    --sigrid-quiz-pulse:          rgba(23, 70, 62, 0.28);
+    --sigrid-input-border:        rgba(26, 26, 27, 0.2);
+    --sigrid-input-focus-border:  rgba(23, 70, 62, 0.4);
+    --sigrid-input-focus-shadow:  rgba(23, 70, 62, 0.06);
+    --sigrid-input-text:          #1a1a1b;
+    --sigrid-input-placeholder:   rgba(26, 26, 27, 0.42);
+    --sigrid-send-hover:          rgba(23, 70, 62, 0.08);
+    --sigrid-close-bg:            rgba(0, 0, 0, 0.05);
+    --sigrid-close-hover:         rgba(0, 0, 0, 0.1);
+    --sigrid-scrollbar:           rgba(0, 0, 0, 0.1);
+  }
+  {% endif %}
+
+  /* ─────────────────────────────────────────────
+     THEME: Mint — fresh light
+     Alternate palette: Mint Mist bg + Forest Mid/Sage Wash
+  ───────────────────────────────────────────── */
+  {% if block.settings.theme_variant == 'mint' %}
+  #sigrid-chat-widget-container {
+    --sigrid-bg:                  #E4EFE5;
+    --sigrid-glow1:               rgba(109, 150, 143, 0.45);
+    --sigrid-glow2:               rgba(53, 109, 99, 0.28);
+    --sigrid-toggle-bg:           #1a1a1b;
+    --sigrid-toggle-icon:         #ffffff;
+    --sigrid-accent:              #356D63;
+    --sigrid-text:                #1a1a1b;
+    --sigrid-text-muted:          rgba(26, 26, 27, 0.45);
+    --sigrid-msg-label:           rgba(26, 26, 27, 0.45);
+    --sigrid-bubble-bg:           rgba(255, 255, 255, 0.58);
+    --sigrid-bubble-border:       rgba(255, 255, 255, 0.9);
+    --sigrid-typing-dot:          rgba(53, 109, 99, 0.4);
+    --sigrid-quiz-bg:             rgba(53, 109, 99, 0.08);
+    --sigrid-quiz-border:         rgba(53, 109, 99, 0.22);
+    --sigrid-quiz-hover-bg:       rgba(53, 109, 99, 0.14);
+    --sigrid-quiz-hover-border:   rgba(53, 109, 99, 0.38);
+    --sigrid-quiz-pulse:          rgba(53, 109, 99, 0.3);
+    --sigrid-input-border:        rgba(26, 26, 27, 0.2);
+    --sigrid-input-focus-border:  rgba(53, 109, 99, 0.4);
+    --sigrid-input-focus-shadow:  rgba(53, 109, 99, 0.06);
+    --sigrid-input-text:          #1a1a1b;
+    --sigrid-input-placeholder:   rgba(26, 26, 27, 0.42);
+    --sigrid-send-hover:          rgba(53, 109, 99, 0.08);
+    --sigrid-close-bg:            rgba(0, 0, 0, 0.05);
+    --sigrid-close-hover:         rgba(0, 0, 0, 0.1);
+    --sigrid-scrollbar:           rgba(0, 0, 0, 0.1);
+  }
+  {% endif %}
+
+  /* ─────────────────────────────────────────────
+     BASE LAYOUT
+  ───────────────────────────────────────────── */
   #sigrid-chat-widget-container {
     position: fixed;
     bottom: {{ block.settings.position_bottom }}px;
@@ -21,7 +161,7 @@
     width: 56px;
     height: 56px;
     border-radius: 9999px;
-    background: #064C44;
+    background: var(--sigrid-toggle-bg);
     border: none;
     cursor: pointer;
     display: flex;
@@ -40,7 +180,7 @@
   .sigrid-toggle svg {
     width: 24px;
     height: 24px;
-    fill: #ffffff;
+    fill: var(--sigrid-toggle-icon);
     transition: transform 0.2s ease;
   }
 
@@ -80,11 +220,11 @@
     }
   }
 
-  /* Background layer with warm beige + gradient glow */
+  /* Background layer */
   .sigrid-bg {
     position: absolute;
     inset: 0;
-    background: #F6F5ED;
+    background: var(--sigrid-bg);
     border-radius: 32px;
     overflow: hidden;
   }
@@ -95,7 +235,7 @@
     width: 280px;
     height: 280px;
     border-radius: 999px;
-    background: rgba(6, 76, 68, 0.7);
+    background: var(--sigrid-glow1);
     filter: blur(150px);
     bottom: -60px;
     right: -20px;
@@ -108,7 +248,7 @@
     width: 380px;
     height: 380px;
     border-radius: 999px;
-    background: rgba(178, 210, 193, 0.85);
+    background: var(--sigrid-glow2);
     filter: blur(200px);
     bottom: -120px;
     left: -40px;
@@ -146,7 +286,7 @@
     font-size: 18px;
     font-weight: 600;
     font-style: italic;
-    color: #064C44;
+    color: var(--sigrid-accent);
     letter-spacing: 0.02em;
   }
 
@@ -154,7 +294,7 @@
     font-family: -apple-system, system-ui, sans-serif;
     font-size: 18px;
     font-weight: 400;
-    color: #064C44;
+    color: var(--sigrid-accent);
     letter-spacing: 0.01em;
   }
 
@@ -162,18 +302,18 @@
     width: 28px;
     height: 28px;
     border-radius: 9999px;
-    background: rgba(0, 0, 0, 0.05);
+    background: var(--sigrid-close-bg);
     border: none;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
     transition: background 0.15s ease;
-    color: #160112;
+    color: var(--sigrid-text);
   }
 
   .sigrid-close-btn:hover {
-    background: rgba(0, 0, 0, 0.1);
+    background: var(--sigrid-close-hover);
   }
 
   .sigrid-close-btn svg {
@@ -203,7 +343,7 @@
 
   .sigrid-intro-sparkle {
     font-size: 22px;
-    color: #064C44;
+    color: var(--sigrid-accent);
     opacity: 0;
     animation: sigrid-fade-up 0.6s ease 0.15s forwards;
     margin-bottom: 18px;
@@ -215,7 +355,7 @@
     font-size: 30px;
     font-weight: 500;
     font-style: italic;
-    color: #160112;
+    color: var(--sigrid-text);
     line-height: 1.2;
     text-align: center;
     opacity: 0;
@@ -228,7 +368,7 @@
     font-size: 30px;
     font-weight: 500;
     font-style: italic;
-    color: #064C44;
+    color: var(--sigrid-accent);
     line-height: 1.2;
     text-align: center;
     opacity: 0;
@@ -239,7 +379,7 @@
   .sigrid-intro-hint {
     font-size: 12px;
     font-weight: 400;
-    color: rgba(22, 1, 18, 0.45);
+    color: var(--sigrid-text-muted);
     letter-spacing: 0.04em;
     text-align: center;
     opacity: 0;
@@ -271,7 +411,7 @@
   }
 
   .sigrid-messages::-webkit-scrollbar-thumb {
-    background: rgba(0, 0, 0, 0.1);
+    background: var(--sigrid-scrollbar);
     border-radius: 2px;
   }
 
@@ -293,7 +433,7 @@
   .sigrid-msg-label {
     font-size: 10px;
     font-weight: 500;
-    color: rgba(0, 0, 0, 0.5);
+    color: var(--sigrid-msg-label);
     text-transform: uppercase;
     letter-spacing: 0.06em;
     padding: 0 4px;
@@ -302,13 +442,13 @@
 
   .sigrid-msg-bubble {
     max-width: 82%;
-    background: rgba(255, 255, 255, 0.5);
-    border: 1px solid rgba(255, 255, 255, 0.9);
+    background: var(--sigrid-bubble-bg);
+    border: 1px solid var(--sigrid-bubble-border);
     border-radius: 12px;
     padding: 10px 12px;
     font-size: 13px;
     line-height: 1.5;
-    color: #160112;
+    color: var(--sigrid-text);
     word-wrap: break-word;
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
@@ -316,7 +456,7 @@
 
   /* Clickable links inside messages */
   .sigrid-msg-bubble .sigrid-link {
-    color: #064C44;
+    color: var(--sigrid-accent);
     text-decoration: underline;
     text-underline-offset: 2px;
     word-break: break-all;
@@ -331,8 +471,8 @@
     display: flex;
     gap: 5px;
     padding: 14px 14px;
-    background: rgba(255, 255, 255, 0.5);
-    border: 1px solid rgba(255, 255, 255, 0.9);
+    background: var(--sigrid-bubble-bg);
+    border: 1px solid var(--sigrid-bubble-border);
     border-radius: 12px;
     align-self: flex-start;
     backdrop-filter: blur(8px);
@@ -342,7 +482,7 @@
   .sigrid-typing span {
     width: 6px;
     height: 6px;
-    background: rgba(6, 76, 68, 0.4);
+    background: var(--sigrid-typing-dot);
     border-radius: 9999px;
     animation: sigrid-bounce 1.2s ease-in-out infinite;
   }
@@ -366,13 +506,13 @@
     display: none;
     align-items: center;
     justify-content: space-between;
-    background: rgba(6, 76, 68, 0.08);
-    border: 1px solid rgba(6, 76, 68, 0.2);
+    background: var(--sigrid-quiz-bg);
+    border: 1px solid var(--sigrid-quiz-border);
     border-radius: 12px;
     padding: 10px 14px;
     margin-bottom: 8px;
     text-decoration: none;
-    color: #064C44;
+    color: var(--sigrid-accent);
     font-size: 12px;
     font-weight: 500;
     cursor: pointer;
@@ -381,8 +521,8 @@
   }
 
   .sigrid-quiz-cta:hover {
-    background: rgba(6, 76, 68, 0.14);
-    border-color: rgba(6, 76, 68, 0.35);
+    background: var(--sigrid-quiz-hover-bg);
+    border-color: var(--sigrid-quiz-hover-border);
   }
 
   .sigrid-quiz-cta.visible {
@@ -414,9 +554,9 @@
   }
 
   @keyframes sigrid-quiz-pulse {
-    0%   { transform: scale(1); box-shadow: 0 0 0 0 rgba(6, 76, 68, 0.3); }
-    50%  { transform: scale(1.02); box-shadow: 0 0 0 6px rgba(6, 76, 68, 0); }
-    100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(6, 76, 68, 0); }
+    0%   { transform: scale(1); box-shadow: 0 0 0 0 var(--sigrid-quiz-pulse); }
+    50%  { transform: scale(1.02); box-shadow: 0 0 0 6px transparent; }
+    100% { transform: scale(1); box-shadow: 0 0 0 0 transparent; }
   }
 
   /* Input bar */
@@ -431,14 +571,14 @@
     gap: 8px;
     background: none;
     border-radius: 24px;
-    border: 1px solid rgba(22, 1, 18, 0.2);
+    border: 1px solid var(--sigrid-input-border);
     padding: 4px 6px 4px 18px;
     transition: border-color 0.15s ease, box-shadow 0.15s ease;
   }
 
   .sigrid-input-wrapper:focus-within {
-    border-color: rgba(6, 76, 68, 0.4);
-    box-shadow: 0 0 0 3px rgba(6, 76, 68, 0.06);
+    border-color: var(--sigrid-input-focus-border);
+    box-shadow: 0 0 0 3px var(--sigrid-input-focus-shadow);
   }
 
   .sigrid-input {
@@ -447,7 +587,7 @@
     background: none !important;
     font-size: 14px;
     font-family: inherit;
-    color: #160112;
+    color: var(--sigrid-input-text);
     outline: none;
     padding: 10px 0;
     -webkit-appearance: none;
@@ -455,7 +595,7 @@
   }
 
   .sigrid-input::placeholder {
-    color: #56637E;
+    color: var(--sigrid-input-placeholder);
   }
 
   .sigrid-send {
@@ -474,7 +614,7 @@
   }
 
   .sigrid-send:hover {
-    background: rgba(6, 76, 68, 0.08);
+    background: var(--sigrid-send-hover) !important;
   }
 
   .sigrid-send:active {
@@ -489,6 +629,10 @@
   .sigrid-send svg {
     width: 18px;
     height: 18px;
+  }
+
+  .sigrid-send svg path {
+    fill: var(--sigrid-accent);
   }
 
   /* Mobile */
@@ -551,7 +695,7 @@
           '<div class="sigrid-input-wrapper">' +
             '<input type="text" class="sigrid-input" placeholder="{{ block.settings.input_placeholder | escape }}" />' +
             '<button class="sigrid-send" aria-label="Send">' +
-              '<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M4.5 19.5L19.5 12L4.5 4.5L4.5 10.5L13.5 12L4.5 13.5L4.5 19.5Z" fill="#064C44"/></svg>' +
+              '<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M4.5 19.5L19.5 12L4.5 4.5L4.5 10.5L13.5 12L4.5 13.5L4.5 19.5Z"/></svg>' +
             '</button>' +
           '</div>' +
         '</div>' +
@@ -746,6 +890,22 @@
       "id": "enabled",
       "label": "Enable chat widget",
       "default": true
+    },
+    {
+      "type": "header",
+      "content": "Appearance"
+    },
+    {
+      "type": "select",
+      "id": "theme_variant",
+      "label": "Design theme",
+      "options": [
+        { "value": "original", "label": "Original — warm beige" },
+        { "value": "forest",   "label": "Forest — dark green" },
+        { "value": "sand",     "label": "Sand — warm neutral" },
+        { "value": "mint",     "label": "Mint — fresh light" }
+      ],
+      "default": "original"
     },
     {
       "type": "url",
