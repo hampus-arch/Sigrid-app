@@ -1,91 +1,47 @@
 /**
- * Fetches live product data from Shopify Storefront API
- * and returns a formatted context string to inject into the agent.
- *
- * Requires env vars:
- *   SHOPIFY_STORE_DOMAIN   — e.g. "sigridlife.myshopify.com"
- *   SHOPIFY_STOREFRONT_TOKEN — a public Storefront API access token
+ * Fetches live product data from the public Shopify product JSON endpoint.
+ * No API token required — this endpoint is publicly available on all Shopify stores.
  */
 
-const STOREFRONT_QUERY = `{
-  products(first: 10) {
-    edges {
-      node {
-        title
-        handle
-        description
-        variants(first: 5) {
-          edges {
-            node {
-              title
-              price {
-                amount
-                currencyCode
-              }
-              availableForSale
-            }
-          }
-        }
-      }
-    }
-  }
-}`;
+const PRODUCT_URL = "https://sigridlife.com/products/glucosestabiliser.json";
 
-let cachedProductContext = null;
+let cachedContext = null;
 let cacheExpiry = 0;
-const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
+const CACHE_TTL_MS = 10 * 60 * 1000; // 10 minutes
 
 export async function getProductContext() {
-  const domain = process.env.SHOPIFY_STORE_DOMAIN?.trim();
-  const token = process.env.SHOPIFY_STOREFRONT_TOKEN?.trim();
-
-  if (!domain || !token) return null; // silently skip if not configured
-
   // Return cached version if still fresh
-  if (cachedProductContext && Date.now() < cacheExpiry) {
-    return cachedProductContext;
+  if (cachedContext && Date.now() < cacheExpiry) {
+    return cachedContext;
   }
 
   try {
-    const res = await fetch(
-      `https://${domain}/api/2024-01/graphql.json`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-Shopify-Storefront-Access-Token": token,
-        },
-        body: JSON.stringify({ query: STOREFRONT_QUERY }),
-      }
-    );
-
+    const res = await fetch(PRODUCT_URL);
     if (!res.ok) return null;
 
-    const { data } = await res.json();
-    const products = data?.products?.edges || [];
+    const { product } = await res.json();
+    if (!product) return null;
 
-    if (!products.length) return null;
+    const lines = [
+      `LIVE PRODUCT & PRICING DATA (always use this when answering pricing questions):`,
+      `Product: ${product.title}`,
+      `URL: https://sigridlife.com/products/glucosestabiliser`,
+    ];
 
-    // Build a concise text summary for the agent
-    const lines = ["LIVE PRODUCT DATA FROM SIGRID STORE (use this for pricing questions):"];
-
-    for (const { node } of products) {
-      lines.push(`\nProduct: ${node.title}`);
-      if (node.description) {
-        lines.push(`Description: ${node.description.substring(0, 200)}`);
-      }
-      for (const { node: variant } of node.variants.edges) {
-        const label = variant.title !== "Default Title" ? ` (${variant.title})` : "";
-        const avail = variant.availableForSale ? "In stock" : "Out of stock";
-        const price = `${parseFloat(variant.price.amount).toFixed(0)} ${variant.price.currencyCode}`;
-        lines.push(`  • ${node.title}${label}: ${price} — ${avail}`);
-      }
+    for (const variant of product.variants || []) {
+      const price = parseFloat(variant.price).toFixed(2);
+      const currency = "USD";
+      const compare = variant.compare_at_price
+        ? ` (regular price: $${parseFloat(variant.compare_at_price).toFixed(2)})`
+        : "";
+      const avail = variant.available ? "In stock" : "Currently out of stock";
+      lines.push(`  • ${variant.title}: $${price} ${currency}${compare} — ${avail}`);
     }
 
-    cachedProductContext = lines.join("\n");
+    cachedContext = lines.join("\n");
     cacheExpiry = Date.now() + CACHE_TTL_MS;
-    return cachedProductContext;
+    return cachedContext;
   } catch {
-    return null; // never break the agent over a product fetch failure
+    return null; // never break the agent over a fetch failure
   }
 }

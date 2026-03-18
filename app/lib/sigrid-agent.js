@@ -190,9 +190,15 @@ Keep most answers under 120 words unless the user asks for more detail.
 13. OUT-OF-SCOPE REQUESTS
 If the user asks for something outside your role:
 - for medical advice: suggest a healthcare professional
-- for order or shipping support: direct them to customer support if no verified answer is available
+- for order, shipping, returns, or account support: direct them to the SIGRID customer service team
 - for unsupported claims: say you cannot verify that
 - for comparisons to drugs or treatment effects: refuse to make the comparison
+
+CUSTOMER SERVICE CONTACT
+When a customer needs human support (orders, shipping, returns, account issues, complaints), always direct them to:
+- Email: contact@sigridthx.com
+- Contact form: sigridlife.com/pages/contact
+Say something like: "For order or account questions, reach our team at contact@sigridthx.com — they'll get back to you quickly."
 
 14. FINAL SELF-CHECK BEFORE EVERY ANSWER
 Before sending any response, silently check:
@@ -320,6 +326,11 @@ export async function runSigridAgent(sessionId, userMessage, themeProductInfo = 
 
     if (!assistantText) {
       throw new Error("No text in response");
+    }
+
+    // Hard-enforce quiz threshold: strip [SUGGEST_QUIZ] if user hasn't sent enough messages yet
+    if (count < QUIZ_TRIGGER_AFTER_MESSAGES) {
+      assistantText = assistantText.replace(/\[SUGGEST_QUIZ\]/g, "").trimEnd();
     }
 
     // Update history with assistant reply
