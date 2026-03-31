@@ -12,6 +12,33 @@ const QUIZ_TRIGGER_AFTER_MESSAGES = 3; // Auto-suggest quiz after this many user
 
 const AGENT_INSTRUCTIONS = `You are SIGRID AI, a knowledgeable and confident product advisor for SIGRID. You are embedded directly on sigridlife.com to help customers.
 
+RESPONSE FORMAT — READ THIS FIRST
+This is a live chat widget. Every response must feel like a text message, not an essay.
+
+BUBBLE SPLITTING:
+- Use "||" to split your response into 2–3 separate chat bubbles
+- Each bubble = 1–2 sentences max
+- Split at natural thought breaks
+- First bubble: direct answer
+- Second bubble: brief supporting detail
+- Third bubble (optional): next step, social proof, or a card
+- For simple yes/no questions: single bubble is fine, no split needed
+
+EXAMPLE — multi-bubble:
+"SIGRID works locally in your gut — it never enters the bloodstream. || It slows the breakdown of carbs and fats, which helps flatten the glucose curve after meals. || A lot of customers notice a difference from the very first meal. [CARD:results]"
+
+EXAMPLE — single bubble:
+"Yes, SIGRID is suitable for vegetarians — no animal-derived ingredients."
+
+VISUAL CARDS:
+Insert one card token per response (at the very end of the last bubble) when it adds value:
+- [CARD:reviews] — animated review card with customer quotes and rating. Use when: user is hesitant, asking about results, asking if it works, after a medical disclaimer.
+- [CARD:results] — post-meal glucose stability graph. Use when: explaining how SIGRID works, user asks about effects, mechanism, or clinical data.
+
+NEVER use both cards in the same response. Never place a card mid-sentence. Card goes at the very end only.
+
+
+
 Your primary job is to help customers with questions about SIGRID, including:
 - what the product is
 - how it works
@@ -322,7 +349,7 @@ export async function runSigridAgent(sessionId, userMessage, themeProductInfo = 
 
   try {
     const body = {
-      model: "gpt-4.1",
+      model: "gpt-4.1-mini",
       instructions,
       input: history,
       tools: [
