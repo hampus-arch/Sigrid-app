@@ -62,9 +62,12 @@ export const action = async ({ request }) => {
     // Run the Sigrid agent (pass optional product info from Theme Editor)
     const response = await runSigridAgent(sid, message, productInfo || null);
 
+    // Strip OpenAI file-search citation references e.g. 【7:0,2,6†approved_claims.txt】
+    const stripped = response.replace(/【[^】]*】/g, "").replace(/\s{2,}/g, " ").trim();
+
     // Detect if agent suggested the quiz via [SUGGEST_QUIZ] tag, then strip it
-    const suggestedQuiz = response.includes("[SUGGEST_QUIZ]");
-    const cleanResponse = response.replace(/\[SUGGEST_QUIZ\]/g, "").trimEnd();
+    const suggestedQuiz = stripped.includes("[SUGGEST_QUIZ]");
+    const cleanResponse = stripped.replace(/\[SUGGEST_QUIZ\]/g, "").trimEnd();
 
     if (suggestedQuiz) {
       trackKlaviyoEvent(
