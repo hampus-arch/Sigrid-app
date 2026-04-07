@@ -918,26 +918,57 @@
   }
 
   // ── Rich card templates ──────────────────────────
-  var CARD_REVIEWS_HTML =
-    '<div class="sigrid-card sigrid-reviews-card">' +
+  var ALL_REVIEWS = [
+    { quote: 'My blood glucose spikes and drops that have been poisoning my daily life are gone.', author: 'Ed' },
+    { quote: 'A noticeable effect on blood sugar levels.', author: 'Katarina Dalunde Eriksson' },
+    { quote: 'There has been an improvement in my blood sugar levels — and significantly reduced bloating.', author: 'Renate Baker' },
+    { quote: 'Great experience with effective appetite suppression and glucose stabilization.', author: 'Anna K' },
+    { quote: 'It\'s been a game-changer in managing my energy levels throughout the day.', author: 'Towe Ahrnbom' },
+    { quote: 'My head is much clearer and I\'m full of energy.', author: 'Mikael Eriksson' },
+    { quote: 'I lost weight, and no longer was I tired after my meals.', author: 'Hans Enström' },
+    { quote: 'Significantly helped me maintain stable energy levels.', author: 'Marcia Alvarado' },
+    { quote: 'It helped with suppressing my hunger for at least 5 hours.', author: 'John Eriksson' },
+    { quote: 'No sugar cravings after food — highly recommended.', author: 'Kaan Kuyumcu' },
+    { quote: 'I definitely feel more full after a smaller lunch and not as hungry.', author: 'Jacqueline' },
+    { quote: 'It helps you not to overeat.', author: 'Jens Rådelius' },
+    { quote: 'I have lost 6.5kg and I have another 2.5kg to reach my target weight.', author: 'Michael Ryan' },
+    { quote: 'I have lost a lot of weight (about 12 kg) and I feel I have a lot more energy.', author: 'Mårten' },
+    { quote: 'Lost 5kg, without changing my lifestyle.', author: 'Sven Nilsson' },
+    { quote: 'I have lost approx. 3.5kg — I highly recommend this product.', author: 'Andy J' },
+    { quote: 'Less bloated and helped me in my weight journey post pregnancy.', author: 'Johanna Juhlin' },
+    { quote: 'I don\'t feel bloated and have added it to my overall routine and feel great.', author: 'PG' },
+    { quote: 'Significant reduction in bloating — positively impacted my overall well-being.', author: 'Damir' },
+    { quote: 'My food digestion after each meal was much increased.', author: 'Tamara De Laval' },
+    { quote: 'This supplement has completely transformed my life — a true blessing!', author: 'Anna J' },
+    { quote: 'It simply makes life even better.', author: 'Stefan' },
+    { quote: 'Fantastic natural solution which WORKS and is easy to implement in one\'s life.', author: 'David Zafirovic' },
+    { quote: 'I\'ve finally found something that works. I highly recommend trying these.', author: 'Sarah' },
+    { quote: 'You can feel SiPore working and the scientific results are there to back it up.', author: 'Jeroen Bischops' },
+    { quote: 'Effective and so easy to use with no side effects.', author: 'Karl Xavier' },
+    { quote: 'I found it very easy to take together with the meal.', author: 'Pia Elisabet Andersson' },
+    { quote: 'The science behind is solid too — it is totally safe.', author: 'Ola Björkman' },
+    { quote: 'It changed my life. I lost weight, and no longer was I tired after my meals.', author: 'Hans Enström' },
+    { quote: 'I now use SIGRID and it effectively replaces all 4 medicines.', author: 'Julie V' }
+  ];
+
+  function buildReviewsCard() {
+    var shuffled = ALL_REVIEWS.slice().sort(function() { return Math.random() - 0.5; });
+    var picked = shuffled.slice(0, 3);
+    var items = picked.map(function(r) {
+      return '<div class="sigrid-review-item">' +
+        '<div class="sigrid-review-quote">\u201c' + r.quote + '\u201d</div>' +
+        '<div class="sigrid-review-author">' + r.author + '</div>' +
+      '</div>';
+    }).join('');
+    return '<div class="sigrid-card sigrid-reviews-card">' +
       '<div class="sigrid-reviews-header">' +
         '<span class="sigrid-stars">★★★★★</span>' +
         '<span class="sigrid-rating-label">4.9 / 5</span>' +
         '<span class="sigrid-rating-count">3,230 reviews</span>' +
       '</div>' +
-      '<div class="sigrid-review-item">' +
-        '<div class="sigrid-review-quote">"I don\'t feel as tired in the afternoons anymore — the difference was noticeable within days."</div>' +
-        '<div class="sigrid-review-author">Verified customer</div>' +
-      '</div>' +
-      '<div class="sigrid-review-item">' +
-        '<div class="sigrid-review-quote">"If you\'re tired of the blood sugar roller coaster, you should really give SIGRID a try!"</div>' +
-        '<div class="sigrid-review-author">Verified customer</div>' +
-      '</div>' +
-      '<div class="sigrid-review-item">' +
-        '<div class="sigrid-review-quote">"The first supplement that has helped me with my IBS. For real."</div>' +
-        '<div class="sigrid-review-author">Fanny · SIGRID customer</div>' +
-      '</div>' +
+      items +
     '</div>';
+  }
 
   var CARD_RESULTS_HTML =
     '<div class="sigrid-card sigrid-results-card">' +
@@ -972,7 +1003,7 @@
     var wrapper = document.createElement('div');
     wrapper.className = 'sigrid-msg-group assistant';
     wrapper.style.animation = 'sigrid-card-in 0.4s ease forwards';
-    wrapper.innerHTML = type === 'reviews' ? CARD_REVIEWS_HTML : CARD_RESULTS_HTML;
+    wrapper.innerHTML = type === 'reviews' ? buildReviewsCard() : CARD_RESULTS_HTML;
     messagesEl.appendChild(wrapper);
     messagesEl.scrollTop = messagesEl.scrollHeight;
   }
