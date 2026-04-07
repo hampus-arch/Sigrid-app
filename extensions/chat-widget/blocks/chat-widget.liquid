@@ -941,28 +941,30 @@
 
   var CARD_RESULTS_HTML =
     '<div class="sigrid-card sigrid-results-card">' +
-      '<div class="sigrid-results-title">Post-meal glucose response</div>' +
-      '<svg viewBox="0 0 280 110" xmlns="http://www.w3.org/2000/svg" style="width:100%;display:block;">' +
-        // axes
-        '<line x1="28" y1="8" x2="28" y2="88" stroke="rgba(0,0,0,0.1)" stroke-width="1"/>' +
-        '<line x1="28" y1="88" x2="272" y2="88" stroke="rgba(0,0,0,0.1)" stroke-width="1"/>' +
-        // horizontal guide lines
-        '<line x1="28" y1="48" x2="272" y2="48" stroke="rgba(0,0,0,0.05)" stroke-width="1" stroke-dasharray="3,3"/>' +
-        '<line x1="28" y1="28" x2="272" y2="28" stroke="rgba(0,0,0,0.05)" stroke-width="1" stroke-dasharray="3,3"/>' +
-        // "Without SIGRID" curve — higher spike, dashed
-        '<path d="M28,84 C55,80 75,22 108,14 C132,9 155,22 185,54 C205,72 242,82 272,84" fill="none" stroke="rgba(0,0,0,0.22)" stroke-width="2" stroke-dasharray="5,4"/>' +
-        // "With SIGRID" curve — lower, filled
-        '<path d="M28,84 C55,81 75,50 108,44 C132,40 155,50 185,68 C205,78 242,83 272,84" fill="rgba(31,93,82,0.1)" stroke="#1f5d52" stroke-width="2.5" stroke-linecap="round"/>' +
-        // x-axis labels
-        '<text x="28" y="100" font-size="8" fill="rgba(0,0,0,0.35)" text-anchor="middle" font-family="sans-serif">0</text>' +
-        '<text x="108" y="100" font-size="8" fill="rgba(0,0,0,0.35)" text-anchor="middle" font-family="sans-serif">1h</text>' +
-        '<text x="188" y="100" font-size="8" fill="rgba(0,0,0,0.35)" text-anchor="middle" font-family="sans-serif">2h</text>' +
-        '<text x="268" y="100" font-size="8" fill="rgba(0,0,0,0.35)" text-anchor="middle" font-family="sans-serif">3h</text>' +
+      '<svg viewBox="0 0 280 190" xmlns="http://www.w3.org/2000/svg" style="width:100%;display:block;border-radius:8px;">' +
+        '<rect width="280" height="190" fill="#F6F5ED"/>' +
+        // Y-axis with arrow
+        '<line x1="42" y1="150" x2="42" y2="16" stroke="#1a1a1b" stroke-width="1.2"/>' +
+        '<polygon points="42,12 39,20 45,20" fill="#1a1a1b"/>' +
+        // X-axis with arrow
+        '<line x1="42" y1="150" x2="263" y2="150" stroke="#1a1a1b" stroke-width="1.2"/>' +
+        '<polygon points="267,150 259,147 259,153" fill="#1a1a1b"/>' +
+        // Y-axis label (rotated)
+        '<text transform="translate(11,150) rotate(-90)" font-size="7.5" fill="#555" font-family="-apple-system,sans-serif" text-anchor="end">Blood sugar and lipid level</text>' +
+        // X-axis label
+        '<text x="152" y="170" font-size="7.5" fill="#555" font-family="-apple-system,sans-serif" text-anchor="middle">Time after meal</text>' +
+        // Dark green bell curve — tall, sharp peak
+        '<path d="M 42,147 C 58,112 76,20 108,17 C 130,15 148,72 165,124 C 173,140 183,147 196,147 L 260,147" fill="none" stroke="#064C44" stroke-width="2.5" stroke-linecap="round"/>' +
+        // Salmon bell curve — lower, wider
+        '<path d="M 42,147 C 65,142 100,90 153,69 C 196,53 233,113 260,147" fill="none" stroke="#ef9f78" stroke-width="2.5" stroke-linecap="round"/>' +
+        // Label: Normal diet alone
+        '<rect x="50" y="20" width="120" height="22" fill="#064C44" rx="3"/>' +
+        '<text x="110" y="35" font-size="9" fill="white" font-family="-apple-system,sans-serif" text-anchor="middle" font-weight="500">Normal diet alone</text>' +
+        // Label: Normal diet with SiPore
+        '<rect x="159" y="56" width="98" height="34" fill="#ef9f78" rx="3"/>' +
+        '<text x="208" y="70" font-size="9" fill="white" font-family="-apple-system,sans-serif" text-anchor="middle" font-weight="500">Normal diet</text>' +
+        '<text x="208" y="83" font-size="9" fill="white" font-family="-apple-system,sans-serif" text-anchor="middle" font-weight="500">with SiPore\u00ae</text>' +
       '</svg>' +
-      '<div class="sigrid-results-legend">' +
-        '<div class="sigrid-legend-item"><div class="sigrid-legend-line without"></div>Without SIGRID</div>' +
-        '<div class="sigrid-legend-item"><div class="sigrid-legend-line with"></div>With SIGRID</div>' +
-      '</div>' +
       '<div class="sigrid-results-note">Illustrative — based on clinical evaluation data</div>' +
     '</div>';
 
@@ -1028,10 +1030,12 @@
       var part = parts[i].trim();
       if (!part) continue;
       if (!first) {
-        await sleep(320);
+        await sleep(380);
         showTyping();
-        await sleep(480 + Math.random() * 280);
+        var typingTime = Math.min(1800, Math.max(600, part.length * 18));
+        await sleep(typingTime + Math.random() * 400);
         hideTyping();
+        await sleep(80);
       }
       addMessage(part, 'assistant', first);
       first = false;
@@ -1074,7 +1078,8 @@
         var parts = raw.split('||').map(function(p) { return p.trim(); }).filter(function(p) { return p.length > 0; });
         await displayBubbles(parts);
 
-        if (data.suggestedQuiz && QUIZ_URL) {
+        var userMentionsQuiz = /quiz/i.test(text);
+        if ((data.suggestedQuiz || userMentionsQuiz) && QUIZ_URL) {
           handleQuizSuggested();
         }
       } else {

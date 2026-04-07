@@ -34,8 +34,7 @@ export async function getProductContext() {
       const compare = variant.compare_at_price
         ? ` (regular price: $${parseFloat(variant.compare_at_price).toFixed(2)})`
         : "";
-      const avail = variant.available ? "In stock" : "Currently out of stock";
-      lines.push(`  • ${variant.title}: $${price} ${currency}${compare} — ${avail}`);
+      lines.push(`  • ${variant.title}: $${price} ${currency}${compare}`);
     }
 
     cachedContext = lines.join("\n");

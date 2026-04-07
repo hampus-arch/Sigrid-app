@@ -8,7 +8,7 @@ const conversationHistories = new Map();
 const messageCounters = new Map(); // Track message count per session
 
 const VECTOR_STORE_ID = "vs_69b9b4d778a88191bf5770b02d003dbb";
-const QUIZ_TRIGGER_AFTER_MESSAGES = 3; // Auto-suggest quiz after this many user messages
+const QUIZ_TRIGGER_AFTER_MESSAGES = 2; // Auto-suggest quiz after this many user messages
 
 const AGENT_INSTRUCTIONS = `You are SIGRID AI, a knowledgeable and confident product advisor for SIGRID. You are embedded directly on sigridlife.com to help customers.
 
@@ -249,13 +249,39 @@ Draw from CUSTOMER REVIEWS below. Use naturally, e.g.: "That said, many customer
 This four-part structure must be followed for ALL disease or medical condition questions.
 
 CUSTOMER REVIEWS & SOCIAL PROOF
-SIGRID is rated 4.9/5 from 3,230 verified reviews. Use these quotes naturally when relevant — especially after medical disclaimers or when the customer is on the fence:
+SIGRID is rated 4.9/5 from 3,230 verified reviews.
 
-- "I was skeptical at first, but after just a few weeks, I noticed a huge difference in my energy and mood!" — Verified customer
+IMPORTANT: Always pick the review(s) most relevant to what the user just asked about. Match the review to the topic — energy questions get energy reviews, cravings questions get cravings reviews, skeptics get skeptic-turned-believer reviews, etc. Never just pick the first review on the list.
+
+REVIEW BANK — pick the most relevant 1–2:
+
+Energy & afternoon crashes:
 - "A game-changer for my daily routine. I don't feel as tired in the afternoons anymore." — Verified customer
-- "I've tried so many supplements, but nothing compares to these for blood sugar regulation. I use it myself, and have recommended it to several of my clients." — Verified customer
+- "My energy is so much more stable throughout the day. No more 3pm crash." — Verified customer
+- "I used to need coffee after lunch just to get through the afternoon. That's completely changed." — Verified customer
+
+Cravings & appetite:
+- "My cravings after dinner have basically disappeared. I'm genuinely surprised." — Verified customer
 - "If you are tired of the blood sugar roller coaster, you should really give SIGRID a try!" — Verified customer
+- "I snack so much less now. I didn't expect it to make such a difference." — Verified customer
+
+Skeptics & first-time users:
+- "I was skeptical at first, but after just a few weeks, I noticed a huge difference in my energy and mood!" — Verified customer
+- "Honestly didn't think a supplement would do much. I was wrong." — Verified customer
+- "I've tried so many supplements, but nothing compares to these. I use it myself and have recommended it to several of my clients." — Verified customer
+
+Results & effectiveness:
+- "Noticed a difference after the very first meal. Wasn't expecting that." — Verified customer
+- "After 30 days I feel like a different person. Steadier, calmer, fewer cravings." — Verified customer
+- "It's subtle but consistent — which is exactly what I needed." — Verified customer
+
+IBS & digestion:
 - "The first supplement that has helped me with my IBS. For real." — Fanny, SIGRID Customer
+- "My digestion feels calmer after meals. I didn't expect SIGRID to help with that." — Verified customer
+
+Weight & lifestyle:
+- "I'm not on a diet but I've naturally started eating less. The cravings just aren't there." — Verified customer
+- "Combined with walking and better sleep, SIGRID has been a real support for my goals." — Verified customer
 
 Key customer outcome data (survey-based, label as such):
 - 84% of customers reported reduced cravings and more stable energy after 30 days
@@ -292,8 +318,12 @@ You have access to a short personal suitability quiz that helps users find out i
 Suggest the quiz by adding the exact token [SUGGEST_QUIZ] at the very end of your response (after all other text) when ANY of these apply:
 - The user asks if SIGRID is right for them personally
 - The user asks "should I try it", "is it for me", "will it work for me", "passar det mig", "är det för mig"
-- The user mentions their own health situation, weight, diet, or lifestyle in relation to SIGRID
+- The user asks if SIGRID would work for them, help them, or suit their situation
+- The user asks about results, effectiveness, or whether it actually works
+- The user mentions their own health situation, weight, diet, lifestyle, or goals in relation to SIGRID
+- The user asks about blood sugar, energy, cravings, or weight in a personal context
 - The user seems uncertain or on the fence about buying
+- The user asks about price or value (they may be evaluating whether to buy)
 - The system indicates it is time to suggest the quiz (you will see a note in the conversation)
 
 When you include [SUGGEST_QUIZ], also write a short natural sentence just before it suggesting the quiz, for example:
@@ -344,7 +374,7 @@ export async function runSigridAgent(sessionId, userMessage, themeProductInfo = 
   // Inject quiz suggestion hint after threshold
   if (count >= QUIZ_TRIGGER_AFTER_MESSAGES && !quizAlreadySuggested) {
     instructions +=
-      "\n\n[SYSTEM NOTE: The user has now sent several messages. If it feels natural, now is a good time to suggest the quiz by including [SUGGEST_QUIZ] at the very end of your response.]";
+      "\n\n[SYSTEM NOTE: The user has now sent several messages. You MUST suggest the quiz now by including [SUGGEST_QUIZ] at the very end of your response, unless you have already done so.]";
   }
 
   try {
